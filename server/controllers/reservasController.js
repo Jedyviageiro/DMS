@@ -57,6 +57,12 @@ const criarPreReserva = async (req, res) => {
 
     await connection.query('UPDATE veiculos SET estoque = estoque - 1 WHERE id = ?', [veiculo_id]);
 
+    // Adicionar notificação
+    await connection.query(
+      'INSERT INTO notificacoes (usuario_id, mensagem, lida) VALUES (?, ?, ?)',
+      [usuario_id, `Nova reserva criada para ${veiculo.marca} ${veiculo.modelo}`, false]
+    );
+
     try {
       await enviarConfirmacaoReserva(usuario.email, usuario.nome, veiculo);
       await connection.commit();
@@ -138,6 +144,12 @@ const cancelarReserva = async (req, res) => {
     await connection.query(
       'UPDATE veiculos SET estoque = estoque + 1 WHERE id = ?',
       [reserva.veiculo_id]
+    );
+
+    // Adicionar notificação de cancelamento
+    await connection.query(
+      'INSERT INTO notificacoes (usuario_id, mensagem, lida) VALUES (?, ?, ?)',
+      [usuario_id, `Reserva #${reserva_id} foi cancelada`, false]
     );
 
     await connection.commit();
