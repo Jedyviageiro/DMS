@@ -24,17 +24,23 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.mensagem || 'Erro ao fazer login');
       }
 
+      // Validate user role
+      if (!data.usuario || !data.usuario.role) {
+        throw new Error('Dados do usuário inválidos');
+      }
+
       // Store token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.usuario));
       setUser(data.usuario);
       return data.usuario;
     } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };
 
-  const register = async (nome, email, senha) => {
+  const register = async (nome, email, senha, role = 'cliente') => {
     try {
       const response = await fetch('http://localhost:3001/api/auth/signup', {
         method: 'POST',
@@ -45,7 +51,7 @@ export const AuthProvider = ({ children }) => {
           nome,
           email,
           senha,
-          role: 'cliente' // All registrations are clients
+          role // Allow both admin and client roles
         }),
       });
 
@@ -57,6 +63,7 @@ export const AuthProvider = ({ children }) => {
 
       return data;
     } catch (error) {
+      console.error('Register error:', error);
       throw error;
     }
   };

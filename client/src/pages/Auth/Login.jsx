@@ -27,13 +27,18 @@ const Login = ({ onNavigate }) => {
 
     try {
       const user = await login(formData.email, formData.senha);
+      console.log('User role:', user.role); // Debug log
+      
       if (user.role === 'admin') {
         onNavigate('admin');
-      } else {
+      } else if (user.role === 'cliente') {
         onNavigate('cliente');
+      } else {
+        setError('Tipo de usuário inválido');
       }
     } catch (err) {
-      setError(err.message);
+      console.error('Login error:', err); // Debug log
+      setError(err.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
     }

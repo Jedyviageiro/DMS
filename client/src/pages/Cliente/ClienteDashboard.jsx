@@ -207,13 +207,14 @@ const ClienteDashboard = ({ onNavigate }) => {
     fileInputRef.current.click();
   };
 
-  // Dummy car images for demonstration
+  // Get car images from localStorage
   const getCarImages = (carId) => {
-    return [
-      `https://source.unsplash.com/800x600/?car,${carId}`,
-      `https://source.unsplash.com/800x600/?luxury,car,${carId}`,
-      `https://source.unsplash.com/800x600/?automotive,${carId}`
-    ];
+    const carKey = `car_images_${carId}`;
+    const storedImages = localStorage.getItem(carKey);
+    if (storedImages) {
+      return JSON.parse(storedImages);
+    }
+    return []; // Return empty array if no images found
   };
 
   const nextImage = () => {
@@ -229,68 +230,72 @@ const ClienteDashboard = ({ onNavigate }) => {
       case 'explorar':
         return (
           <div className="cars-grid">
-            {cars.map(car => (
-              <div key={car.id} className="car-card" onClick={() => {
-                setSelectedCar(car);
-                setCurrentImageIndex(0);
-              }}>
-                <div className="car-image">
-                  <img src={`https://source.unsplash.com/400x300/?car,${car.id}`} alt={`${car.marca} ${car.modelo}`} />
+            {cars.map(car => {
+              const images = getCarImages(car.id);
+              const firstImage = images.length > 0 ? images[0] : null;
+              
+              return (
+                <div key={car.id} className="car-card" onClick={() => {
+                  setSelectedCar(car);
+                  setCurrentImageIndex(0);
+                }}>
+                  <div className="car-image">
+                    {firstImage ? (
+                      <img src={firstImage} alt={`${car.marca} ${car.modelo}`} />
+                    ) : (
+                      <FaCar className="car-placeholder-icon" />
+                    )}
+                  </div>
+                  <div className="car-info">
+                    <h3>{car.marca} {car.modelo}</h3>
+                    <p>Ano: {car.ano}</p>
+                    <p>Preço: R$ {car.preco.toLocaleString('pt-BR')}</p>
+                  </div>
                 </div>
-                <div className="car-info">
-                  <h3>{car.marca} {car.modelo}</h3>
-                  <p>Ano: {car.ano}</p>
-                  <p>Preço: R$ {car.preco.toLocaleString('pt-BR')}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         );
       case 'reservas':
         return (
-          <div className="reservas-section">
-            <h2>Minhas Reservas</h2>
-            {reservations.length === 0 ? (
-              <div className="empty-state">
-                <FaCalendarAlt size={48} />
-                <p>Você ainda não tem reservas</p>
-              </div>
-            ) : (
-              <div className="reservas-grid">
-                {reservations.map(reserva => (
-                  <div key={reserva.id} className="reserva-card">
-                    <div className="reserva-image">
-                      <img src={`https://source.unsplash.com/400x300/?car,${reserva.veiculo_id}`} alt={`${reserva.marca} ${reserva.modelo}`} />
-                      <div className="reserva-status" data-status={reserva.status}>
-                        {reserva.status === 'pendente' ? 'Pendente' : 
-                         reserva.status === 'confirmada' ? 'Confirmada' : 
-                         reserva.status === 'cancelada' ? 'Cancelada' : reserva.status}
+          <div className="reservas-grid">
+            {reservations.map(reserva => {
+              const images = getCarImages(reserva.veiculo_id);
+              const firstImage = images.length > 0 ? images[0] : null;
+              
+              return (
+                <div key={reserva.id} className="reserva-card">
+                  <div className="reserva-image">
+                    {firstImage ? (
+                      <img src={firstImage} alt={`${reserva.marca} ${reserva.modelo}`} />
+                    ) : (
+                      <div className="placeholder-image">
+                        <i className="fas fa-car"></i>
                       </div>
-                    </div>
-                    <div className="reserva-info">
-                      <h3>{reserva.marca} {reserva.modelo}</h3>
-                      <div className="reserva-details">
-                        <p><strong>Ano:</strong> {reserva.ano}</p>
-                        <p><strong>Data da Reserva:</strong> {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}</p>
-                        <p><strong>Status:</strong> {reserva.status}</p>
-                      </div>
-                      {reserva.status === 'pendente' && (
-                        <button 
-                          className="btn-cancel"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCancelReservation(reserva.id);
-                          }}
-                        >
-                          <FaTimes size={14} />
-                          Cancelar
-                        </button>
-                      )}
-                    </div>
+                    )}
+                    <span className="reserva-status" data-status={reserva.status}>
+                      {reserva.status === 'pendente' ? 'Pendente' : 
+                       reserva.status === 'confirmada' ? 'Confirmada' : 'Cancelada'}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="reserva-info">
+                    <h3>{reserva.marca} {reserva.modelo}</h3>
+                    <p>Ano: {reserva.ano}</p>
+                    <p>Preço: R$ {reserva.preco.toLocaleString('pt-BR')}</p>
+                    <p>Data da Reserva: {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}</p>
+                    {reserva.status === 'pendente' && (
+                      <button 
+                        className="btn-cancelar"
+                        onClick={() => handleCancelReservation(reserva.id)}
+                      >
+                        <i className="fas fa-times"></i>
+                        Cancelar Reserva
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         );
       case 'perfil':
@@ -549,11 +554,18 @@ const ClienteDashboard = ({ onNavigate }) => {
               <button className="gallery-nav prev" onClick={prevImage}>
                 <FaChevronLeft />
               </button>
-              <img 
-                src={getCarImages(selectedCar.id)[currentImageIndex]} 
-                alt={`${selectedCar.marca} ${selectedCar.modelo}`} 
-                className="car-gallery-image"
-              />
+              {getCarImages(selectedCar.id).length > 0 ? (
+                <img 
+                  src={getCarImages(selectedCar.id)[currentImageIndex]} 
+                  alt={`${selectedCar.marca} ${selectedCar.modelo}`} 
+                  className="car-gallery-image"
+                />
+              ) : (
+                <div className="car-gallery-placeholder">
+                  <FaCar size={40} />
+                  <p>Nenhuma imagem disponível</p>
+                </div>
+              )}
               <button className="gallery-nav next" onClick={nextImage}>
                 <FaChevronRight />
               </button>

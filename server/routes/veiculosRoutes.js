@@ -1,13 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { listarVeiculos, entradaEstoque, saidaEstoque } = require('../controllers/veiculosController');
-const { autenticarToken, isCliente } = require('../middlewares/authMiddleware');
+const { autenticarToken, isAdmin } = require('../middlewares/authMiddleware');
+const {
+  listarVeiculos,
+  adicionarVeiculo,
+  atualizarVeiculo,
+  excluirVeiculo
+} = require('../controllers/veiculosController');
 
-// Endpoint para listar veículos com filtros, restrito a clientes logados
-router.get('/veiculos', autenticarToken, isCliente, listarVeiculos);
+// Listar veículos (público)
+router.get('/veiculos', listarVeiculos);
 
-// Rotas para entrada e saída de veículos, protegidas por autenticação
-router.patch('/veiculos/:id/entrada', autenticarToken, entradaEstoque);
-router.patch('/veiculos/:id/saida', autenticarToken, saidaEstoque);
+// Rotas administrativas
+router.post('/veiculos', autenticarToken, isAdmin, adicionarVeiculo);
+router.put('/veiculos/:id', autenticarToken, isAdmin, atualizarVeiculo);
+router.delete('/veiculos/:id', autenticarToken, isAdmin, excluirVeiculo);
 
 module.exports = router;
