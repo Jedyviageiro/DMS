@@ -3,7 +3,10 @@ import React, { createContext, useState, useContext } from 'react';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   const login = async (email, senha) => {
     try {
@@ -23,6 +26,7 @@ export const AuthProvider = ({ children }) => {
 
       // Store token and user data
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.usuario));
       setUser(data.usuario);
       return data.usuario;
     } catch (error) {
@@ -59,6 +63,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 
