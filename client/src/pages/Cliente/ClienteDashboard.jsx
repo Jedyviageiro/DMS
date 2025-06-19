@@ -1,13 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaCar, FaUser, FaBell, FaSignOutAlt, FaSearch, FaCalendarAlt, FaUserEdit, FaBars, FaEdit, FaSave, FaTimes, FaChevronLeft, FaChevronRight, FaCamera, FaUserCircle } from 'react-icons/fa';
-import { 
-  getVehicles, 
-  getReservations, 
-  getNotifications, 
+import {
+  FaCar,
+  FaUser,
+  FaBell,
+  FaSignOutAlt,
+  FaSearch,
+  FaCalendarAlt,
+  FaUserEdit,
+  FaBars,
+  FaEdit,
+  FaSave,
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
+  FaCamera,
+  FaUserCircle,
+} from 'react-icons/fa';
+import {
+  getVehicles,
+  getReservations,
+  getNotifications,
   markNotificationAsRead,
   createReservation,
   cancelReservation,
-  updateUserProfile 
+  updateUserProfile,
+  getPromocoes,
 } from '../../services/api';
 import '../../assets/styles/ClienteDashboard.css';
 
@@ -17,6 +34,7 @@ const ClienteDashboard = ({ onNavigate }) => {
   const [cars, setCars] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [notificacoes, setNotificacoes] = useState([]);
+  const [promocoes, setPromocoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -26,12 +44,14 @@ const ClienteDashboard = ({ onNavigate }) => {
   const [editForm, setEditForm] = useState({
     nome: '',
     email: '',
-    telefone: ''
+    telefone: '',
   });
   const [editError, setEditError] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -42,9 +62,8 @@ const ClienteDashboard = ({ onNavigate }) => {
       setEditForm({
         nome: userData.nome || '',
         email: userData.email || '',
-        telefone: userData.telefone || ''
+        telefone: userData.telefone || '',
       });
-      // Load profile image from localStorage using email as key
       const savedImage = localStorage.getItem(`profileImage_${userData.email}`);
       if (savedImage) {
         setProfileImage(savedImage);
@@ -55,10 +74,11 @@ const ClienteDashboard = ({ onNavigate }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [vehiclesRes, notificationsRes, reservationsRes] = await Promise.all([
+      const [vehiclesRes, notificationsRes, reservationsRes, promocoesRes] = await Promise.all([
         getVehicles(),
         getNotifications(),
-        getReservations()
+        getReservations(),
+        getPromocoes(),
       ]);
 
       if (vehiclesRes.data.veiculos) {
@@ -70,6 +90,9 @@ const ClienteDashboard = ({ onNavigate }) => {
       if (reservationsRes.data.reservas) {
         setReservations(reservationsRes.data.reservas);
       }
+      if (promocoesRes.data) {
+        setPromocoes(promocoesRes.data);
+      }
     } catch (err) {
       setError('Erro ao carregar dados');
       console.error('Error fetching data:', err);
@@ -78,13 +101,34 @@ const ClienteDashboard = ({ onNavigate }) => {
     }
   };
 
+  const applyDiscount = (precoOriginal, promocao) => {
+    if (!promocao || !promocao.ativo) return { precoFinal: precoOriginal, desconto: 0 };
+
+    let desconto = 0;
+    if (promocao.desconto_tipo === 'percentual') {
+      desconto = precoOriginal * (promocao.desconto_valor / 100);
+    } else if (promocao.desconto_tipo === 'valor_fixo') {
+      desconto = promocao.desconto_valor;
+    }
+    const precoFinal = precoOriginal - desconto;
+    return { precoFinal: precoFinal > 0 ? precoFinal : 0, desconto };
+  };
+
+  const getApplicablePromotion = (car) => {
+    return promocoes.find((promocao) => {
+      if (!promocao.ativo) return false;
+      if (promocao.aplicavel_em === 'todos') return true;
+      if (promocao.aplicavel_em === 'marca' && promocao.marca === car.marca) return true;
+      if (promocao.aplicavel_em === 'modelo' && promocao.modelo === car.modelo) return true;
+      return false;
+    });
+  };
+
   const handleMarcarNotificacaoLida = async (notificacaoId) => {
     try {
       await markNotificationAsRead(notificacaoId);
-      setNotificacoes(notificacoes.map(notificacao => 
-        notificacao.id === notificacaoId 
-          ? { ...notificacao, lida: true }
-          : notificacao
+      setNotificacoes(notificacoes.map((notificacao) =>
+        notificacao.id === notificacaoId ? { ...notificacao, lida: true } : notificacao
       ));
     } catch (err) {
       console.error('Erro ao marcar notificação como lida:', err);
@@ -102,7 +146,7 @@ const ClienteDashboard = ({ onNavigate }) => {
       const response = await createReservation(carId);
       if (response.data) {
         setSelectedCar(null);
-        fetchData(); // Refresh all data
+        fetchData();
       }
     } catch (err) {
       setError(err.response?.data?.mensagem || 'Erro ao fazer pré-reserva');
@@ -112,7 +156,7 @@ const ClienteDashboard = ({ onNavigate }) => {
   const handleCancelReservation = async (reservaId) => {
     try {
       await cancelReservation(reservaId);
-      fetchData(); // Refresh all data
+      fetchData();
     } catch (err) {
       setError(err.response?.data?.mensagem || 'Erro ao cancelar reserva');
     }
@@ -121,11 +165,9 @@ const ClienteDashboard = ({ onNavigate }) => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setEditError('');
-
     try {
       const response = await updateUserProfile(editForm);
       if (response.mensagem === 'Dados pessoais atualizados com sucesso') {
-        // Update local storage and state with new user data
         const updatedUser = { ...user, ...editForm };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
@@ -138,9 +180,9 @@ const ClienteDashboard = ({ onNavigate }) => {
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({
+    setEditForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -174,8 +216,6 @@ const ClienteDashboard = ({ onNavigate }) => {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-
-          // Convert to JPEG with 0.7 quality
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
           resolve(compressedDataUrl);
         };
@@ -192,7 +232,6 @@ const ClienteDashboard = ({ onNavigate }) => {
         setIsUploading(true);
         const compressedImage = await compressImage(file);
         setProfileImage(compressedImage);
-        // Store image with email as part of the key
         localStorage.setItem(`profileImage_${user.email}`, compressedImage);
       } catch (error) {
         console.error('Error processing image:', error);
@@ -207,14 +246,10 @@ const ClienteDashboard = ({ onNavigate }) => {
     fileInputRef.current.click();
   };
 
-  // Get car images from localStorage
   const getCarImages = (carId) => {
     const carKey = `car_images_${carId}`;
     const storedImages = localStorage.getItem(carKey);
-    if (storedImages) {
-      return JSON.parse(storedImages);
-    }
-    return []; // Return empty array if no images found
+    return storedImages ? JSON.parse(storedImages) : [];
   };
 
   const nextImage = () => {
@@ -222,47 +257,110 @@ const ClienteDashboard = ({ onNavigate }) => {
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + getCarImages(selectedCar?.id).length) % getCarImages(selectedCar?.id).length);
+    setCurrentImageIndex((prev) =>
+      (prev - 1 + getCarImages(selectedCar?.id).length) % getCarImages(selectedCar?.id).length
+    );
   };
+
+  const filteredCars = cars.filter((car) => {
+    const matchesSearch = car.marca.toLowerCase().includes(searchTerm.toLowerCase());
+    const hasPromotion = showPromotionsOnly ? !!getApplicablePromotion(car) : true;
+    return matchesSearch && hasPromotion;
+  });
 
   const renderContent = () => {
     switch (activeTab) {
       case 'explorar':
         return (
-          <div className="cars-grid">
-            {cars.map(car => {
-              const images = getCarImages(car.id);
-              const firstImage = images.length > 0 ? images[0] : null;
-              
-              return (
-                <div key={car.id} className="car-card" onClick={() => {
-                  setSelectedCar(car);
-                  setCurrentImageIndex(0);
-                }}>
-                  <div className="car-image">
-                    {firstImage ? (
-                      <img src={firstImage} alt={`${car.marca} ${car.modelo}`} />
-                    ) : (
-                      <FaCar className="car-placeholder-icon" />
-                    )}
+          <div className="explorar-section">
+            <div className="search-filter-container">
+              <div className="search-bar">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Pesquisar por marca de carro..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+              </div>
+              <label className="promotion-filter">
+                <input
+                  type="checkbox"
+                  checked={showPromotionsOnly}
+                  onChange={(e) => setShowPromotionsOnly(e.target.checked)}
+                />
+                Ver apenas Promoções
+              </label>
+            </div>
+            <div className="cars-grid">
+              {filteredCars.map((car) => {
+                const images = getCarImages(car.id);
+                const firstImage = images.length > 0 ? images[0] : null;
+                const promocao = getApplicablePromotion(car);
+                const { precoFinal, desconto } = applyDiscount(car.preco, promocao);
+
+                return (
+                  <div
+                    key={car.id}
+                    className="car-card"
+                    onClick={() => {
+                      setSelectedCar(car);
+                      setCurrentImageIndex(0);
+                    }}
+                  >
+                    <div className="car-image">
+                      {firstImage ? (
+                        <img src={firstImage} alt={`${car.marca} ${car.modelo}`} />
+                      ) : (
+                        <FaCar className="car-placeholder-icon" />
+                      )}
+                    </div>
+                    <div className="car-info">
+                      <h3>{car.marca} {car.modelo}</h3>
+                      <p>Ano: {car.ano}</p>
+                      {promocao ? (
+                        <>
+                          <p className="promo-title">{promocao.titulo || 'Promoção Especial'}</p>
+                          <p className="preco-original">
+                            Preço Original: R$ {car.preco.toLocaleString('pt-BR')}
+                          </p>
+                          <p className="desconto">
+                            Desconto:{' '}
+                            {promocao.desconto_tipo === 'percentual'
+                              ? `${promocao.desconto_valor}%`
+                              : `R$ ${promocao.desconto_valor.toLocaleString('pt-BR')}`}
+                          </p>
+                          <p className="preco-final">
+                            Preço Final: R$ {precoFinal.toLocaleString('pt-BR')}
+                          </p>
+                        </>
+                      ) : (
+                        <p>Preço: R$ {car.preco.toLocaleString('pt-BR')}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="car-info">
-                    <h3>{car.marca} {car.modelo}</h3>
-                    <p>Ano: {car.ano}</p>
-                    <p>Preço: R$ {car.preco.toLocaleString('pt-BR')}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+              {filteredCars.length === 0 && (
+                <p>Nenhum carro encontrado para os critérios selecionados.</p>
+              )}
+            </div>
           </div>
         );
       case 'reservas':
         return (
           <div className="reservas-grid">
-            {reservations.map(reserva => {
+            {reservations.map((reserva) => {
               const images = getCarImages(reserva.veiculo_id);
               const firstImage = images.length > 0 ? images[0] : null;
-              
+              const promocao = getApplicablePromotion({
+                marca: reserva.marca,
+                modelo: reserva.modelo,
+                preco: reserva.preco,
+              });
+              const { precoFinal, desconto } = applyDiscount(reserva.preco, promocao);
+
               return (
                 <div key={reserva.id} className="reserva-card">
                   <div className="reserva-image">
@@ -270,26 +368,46 @@ const ClienteDashboard = ({ onNavigate }) => {
                       <img src={firstImage} alt={`${reserva.marca} ${reserva.modelo}`} />
                     ) : (
                       <div className="placeholder-image">
-                        <i className="fas fa-car"></i>
+                        <FaCar />
                       </div>
                     )}
                     <span className="reserva-status" data-status={reserva.status}>
-                      {reserva.status === 'pendente' ? 'Pendente' : 
-                       reserva.status === 'confirmada' ? 'Confirmada' : 'Cancelada'}
+                      {reserva.status === 'pendente'
+                        ? 'Pendente'
+                        : reserva.status === 'confirmada'
+                        ? 'Confirmada'
+                        : 'Cancelada'}
                     </span>
                   </div>
                   <div className="reserva-info">
                     <h3>{reserva.marca} {reserva.modelo}</h3>
                     <p>Ano: {reserva.ano}</p>
-                    <p>Preço: R$ {reserva.preco.toLocaleString('pt-BR')}</p>
+                    {promocao ? (
+                      <>
+                        <p className="promo-title">{promocao.titulo || 'Promoção Especial'}</p>
+                        <p className="preco-original">
+                          Preço Original: R$ {reserva.preco.toLocaleString('pt-BR')}
+                        </p>
+                        <p className="desconto">
+                          Desconto:{' '}
+                          {promocao.desconto_tipo === 'percentual'
+                            ? `${promocao.desconto_valor}%`
+                            : `R$ ${promocao.desconto_valor.toLocaleString('pt-BR')}`}
+                        </p>
+                        <p className="preco-final">
+                          Preço Final: R$ {precoFinal.toLocaleString('pt-BR')}
+                        </p>
+                      </>
+                    ) : (
+                      <p>Preço: R$ {reserva.preco.toLocaleString('pt-BR')}</p>
+                    )}
                     <p>Data da Reserva: {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}</p>
                     {reserva.status === 'pendente' && (
-                      <button 
+                      <button
                         className="btn-cancelar"
                         onClick={() => handleCancelReservation(reserva.id)}
                       >
-                        <i className="fas fa-times"></i>
-                        Cancelar Reserva
+                        <FaTimes /> Cancelar Reserva
                       </button>
                     )}
                   </div>
@@ -306,21 +424,17 @@ const ClienteDashboard = ({ onNavigate }) => {
               <div className="edit-actions">
                 {isEditing ? (
                   <>
-                    <button 
-                      className="btn-icon btn-success"
-                      onClick={handleEditSubmit}
-                    >
+                    <button className="btn-icon btn-success" onClick={handleEditSubmit}>
                       <FaSave /> Salvar
                     </button>
-                    <button 
+                    <button
                       className="btn-icon btn-danger"
                       onClick={() => {
                         setIsEditing(false);
-                        // Reset form to current user data
                         setEditForm({
                           nome: user?.nome || '',
                           email: user?.email || '',
-                          telefone: user?.telefone || ''
+                          telefone: user?.telefone || '',
                         });
                       }}
                     >
@@ -328,30 +442,22 @@ const ClienteDashboard = ({ onNavigate }) => {
                     </button>
                   </>
                 ) : (
-                  <button 
-                    className="btn-icon"
-                    onClick={() => setIsEditing(true)}
-                  >
+                  <button className="btn-icon" onClick={() => setIsEditing(true)}>
                     <FaEdit /> Editar
                   </button>
                 )}
               </div>
             </div>
-
             <div className="perfil-content">
               <div className="perfil-image-container">
                 {profileImage ? (
-                  <img 
-                    src={profileImage} 
-                    alt="Foto de perfil" 
-                    className="perfil-image"
-                  />
+                  <img src={profileImage} alt="Foto de perfil" className="perfil-image" />
                 ) : (
                   <div className="perfil-image-placeholder">
                     <FaUserCircle size={80} />
                   </div>
                 )}
-                <button 
+                <button
                   className="btn-upload"
                   onClick={triggerImageUpload}
                   disabled={isUploading}
@@ -367,7 +473,6 @@ const ClienteDashboard = ({ onNavigate }) => {
                   style={{ display: 'none' }}
                 />
               </div>
-
               {isEditing ? (
                 <form onSubmit={handleEditSubmit} className="edit-form">
                   <div className="form-group">
@@ -440,21 +545,20 @@ const ClienteDashboard = ({ onNavigate }) => {
 
   return (
     <div className="dashboard-container">
-      {/* Top Navbar */}
       <header className="top-navbar">
         <div className="logo">
           <h1>AutoElite</h1>
         </div>
         <div className="nav-actions">
           <div className="notifications-container">
-            <button 
+            <button
               className="notification-button"
               onClick={() => setShowNotifications(!showNotifications)}
             >
               <FaBell size={20} />
-              {notificacoes.filter(n => !n.lida).length > 0 && (
+              {notificacoes.filter((n) => !n.lida).length > 0 && (
                 <span className="notification-badge">
-                  {notificacoes.filter(n => !n.lida).length}
+                  {notificacoes.filter((n) => !n.lida).length}
                 </span>
               )}
             </button>
@@ -463,14 +567,14 @@ const ClienteDashboard = ({ onNavigate }) => {
                 {notificacoes.length === 0 ? (
                   <p>Nenhuma notificação</p>
                 ) : (
-                  notificacoes.map(notificacao => (
-                    <div 
-                      key={notificacao.id} 
+                  notificacoes.map((notificacao) => (
+                    <div
+                      key={notificacao.id}
                       className={`notification-item ${!notificacao.lida ? 'unread' : ''}`}
                     >
                       <p>{notificacao.mensagem}</p>
                       {!notificacao.lida && (
-                        <button 
+                        <button
                           className="btn btn-text"
                           onClick={() => handleMarcarNotificacaoLida(notificacao.id)}
                         >
@@ -499,54 +603,48 @@ const ClienteDashboard = ({ onNavigate }) => {
       </header>
 
       <div className="dashboard-wrapper">
-        {/* Sidebar */}
         <nav className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-          <button 
+          <button
             className="collapse-button"
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           >
             <FaBars />
           </button>
           <div className="nav-links">
-            <button 
+            <button
               className={`nav-link ${activeTab === 'explorar' ? 'active' : ''}`}
               onClick={() => setActiveTab('explorar')}
             >
               <FaCar />
               {!isSidebarCollapsed && <span>Explorar</span>}
             </button>
-            <button 
+            <button
               className={`nav-link ${activeTab === 'reservas' ? 'active' : ''}`}
               onClick={() => setActiveTab('reservas')}
             >
               <FaCalendarAlt />
               {!isSidebarCollapsed && <span>Minhas Reservas</span>}
             </button>
-            <button 
+            <button
               className={`nav-link ${activeTab === 'perfil' ? 'active' : ''}`}
               onClick={() => setActiveTab('perfil')}
             >
               <FaUserEdit />
               {!isSidebarCollapsed && <span>Meu Perfil</span>}
             </button>
-            <button 
-              className="nav-link logout"
-              onClick={handleLogout}
-            >
+            <button className="nav-link logout" onClick={handleLogout}>
               <FaSignOutAlt />
               {!isSidebarCollapsed && <span>Sair</span>}
             </button>
           </div>
         </nav>
 
-        {/* Main Content */}
         <main className="main-content">
           {error && <div className="error-message">{error}</div>}
           {renderContent()}
         </main>
       </div>
 
-      {/* Car Details Modal */}
       {selectedCar && (
         <div className="modal-overlay">
           <div className="modal-content car-modal">
@@ -555,9 +653,9 @@ const ClienteDashboard = ({ onNavigate }) => {
                 <FaChevronLeft />
               </button>
               {getCarImages(selectedCar.id).length > 0 ? (
-                <img 
-                  src={getCarImages(selectedCar.id)[currentImageIndex]} 
-                  alt={`${selectedCar.marca} ${selectedCar.modelo}`} 
+                <img
+                  src={getCarImages(selectedCar.id)[currentImageIndex]}
+                  alt={`${selectedCar.marca} ${selectedCar.modelo}`}
                   className="car-gallery-image"
                 />
               ) : (
@@ -571,8 +669,8 @@ const ClienteDashboard = ({ onNavigate }) => {
               </button>
               <div className="gallery-dots">
                 {getCarImages(selectedCar.id).map((_, index) => (
-                  <span 
-                    key={index} 
+                  <span
+                    key={index}
                     className={`dot ${index === currentImageIndex ? 'active' : ''}`}
                     onClick={() => setCurrentImageIndex(index)}
                   />
@@ -583,18 +681,42 @@ const ClienteDashboard = ({ onNavigate }) => {
               <h2>{selectedCar.marca} {selectedCar.modelo}</h2>
               <div className="car-specs">
                 <p><strong>Ano:</strong> {selectedCar.ano}</p>
-                <p><strong>Preço:</strong> R$ {selectedCar.preco.toLocaleString('pt-BR')}</p>
+                {(() => {
+                  const promocao = getApplicablePromotion(selectedCar);
+                  const { precoFinal, desconto } = applyDiscount(selectedCar.preco, promocao);
+                  return promocao ? (
+                    <>
+                      <p className="promo-title">{promocao.titulo || 'Promoção Especial'}</p>
+                      <p className="preco-original">
+                        <strong>Preço Original:</strong> R$ {selectedCar.preco.toLocaleString('pt-BR')}
+                      </p>
+                      <p className="desconto">
+                        <strong>Desconto:</strong>{' '}
+                        {promocao.desconto_tipo === 'percentual'
+                          ? `${promocao.desconto_valor}%`
+                          : `R$ ${promocao.desconto_valor.toLocaleString('pt-BR')}`}
+                      </p>
+                      <p className="preco-final">
+                        <strong>Preço Final:</strong> R$ {precoFinal.toLocaleString('pt-BR')}
+                      </p>
+                    </>
+                  ) : (
+                    <p>
+                      <strong>Preço:</strong> R$ {selectedCar.preco.toLocaleString('pt-BR')}
+                    </p>
+                  );
+                })()}
                 <p><strong>Combustível:</strong> {selectedCar.combustivel}</p>
                 <p><strong>Quilometragem:</strong> {selectedCar.quilometragem} km</p>
               </div>
               <div className="modal-actions">
-                <button 
+                <button
                   className="btn btn-primary"
                   onClick={() => handlePreOrder(selectedCar.id)}
                 >
                   Fazer Pré-reserva
                 </button>
-                <button 
+                <button
                   className="btn btn-secondary"
                   onClick={() => setSelectedCar(null)}
                 >
@@ -610,4 +732,3 @@ const ClienteDashboard = ({ onNavigate }) => {
 };
 
 export default ClienteDashboard;
-
