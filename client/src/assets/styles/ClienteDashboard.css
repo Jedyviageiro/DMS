@@ -317,13 +317,20 @@
   left: 0;
   right: 0;
   bottom: 0;
+<<<<<<< HEAD
   background-color: rgba(0, 0, 0, 0.08);
+=======
+  background-color: rgba(0, 0, 0, 0.5);
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+<<<<<<< HEAD
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 }
 
 .modal-content {
@@ -1027,7 +1034,11 @@
 .search-filter-container {
   display: flex;
   align-items: center;
+<<<<<<< HEAD
   justify-content: center;
+=======
+  justify-content: center; /* Changed from space-between to center */
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   gap: 2.5rem;
   margin-bottom: 2rem;
   padding: 1rem;
@@ -1041,8 +1052,13 @@
   display: flex;
   align-items: center;
   flex: 4;
+<<<<<<< HEAD
   min-width: 350px;
   max-width: 800px;
+=======
+  min-width: 350px; /* Increased from 300px */
+  max-width: 800px; /* Increased from 700px */
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   border: 1px solid #e5e5e5;
   border-radius: 10px;
   padding: 0.85rem 1.25rem;
@@ -1109,6 +1125,29 @@
   color: #0066cc;
 }
 
+<<<<<<< HEAD
+=======
+.promotion-filter input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #0066cc;
+  border: 1px solid #e5e5e5;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.promotion-filter input[type="checkbox"]:checked {
+  border-color: #0066cc;
+}
+
+.promotion-filter label {
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Responsive Design */
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 @media (max-width: 768px) {
   .search-filter-container {
     flex-direction: column;
@@ -1116,12 +1155,20 @@
     gap: 1.5rem;
     padding: 1.25rem;
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   .search-bar {
     flex: none;
     width: 100%;
     max-width: none;
     min-width: 0;
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   .promotion-filter {
     flex: none;
     max-width: none;
@@ -1129,6 +1176,7 @@
     padding: 0.5rem 0.75rem;
     align-self: flex-start;
   }
+<<<<<<< HEAD
   .promotion-filter label {
     font-size: 0.8rem;
   }
@@ -1575,4 +1623,10 @@
 .modern-icon-btn:hover {
   background: #f0f4ff;
   box-shadow: 0 1px 4px rgba(79,140,255,0.08);
+=======
+
+  .promotion-filter label {
+    font-size: 0.8rem;
+  }
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 }

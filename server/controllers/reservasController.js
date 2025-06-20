@@ -163,6 +163,7 @@ const cancelarReserva = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // ADMIN: Listar todas as reservas com info de usuário e veículo
 const listarTodasReservas = async (req, res) => {
   try {
@@ -230,4 +231,10 @@ module.exports = {
   cancelarReserva,
   listarTodasReservas, // admin
   atualizarStatusReserva // admin
+=======
+module.exports = {
+  criarPreReserva,
+  listarReservasCliente,
+  cancelarReserva
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 };

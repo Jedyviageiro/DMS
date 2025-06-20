@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { FaCar, FaSearch, FaInbox, FaCheckCircle } from 'react-icons/fa';
 import { adminApi } from '../../services/api';
 import { adminApi as adminApiAdmin } from '../../services/adminApi';
+=======
+import { FaCar, FaSearch } from 'react-icons/fa';
+import { adminApi } from '../../services/api';
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 import Sidebar from './Sidebar';
 import VehicleModal from './VehicleModal';
 import Promocoes from './Promocoes';
 import Usuario from './Usuarios';
+<<<<<<< HEAD
 import AdminForum from './AdminForum';
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 import '../../assets/styles/AdminDashboard.css';
 
 const AdminDashboard = ({ onNavigate }) => {
@@ -29,16 +37,22 @@ const AdminDashboard = ({ onNavigate }) => {
     imagens: [],
   });
   const [searchTerm, setSearchTerm] = useState('');
+<<<<<<< HEAD
   const [reservas, setReservas] = useState([]);
   const [loadingReservas, setLoadingReservas] = useState(false);
   const [errorReservas, setErrorReservas] = useState(null);
   const [reservaSearch, setReservaSearch] = useState('');
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 
   useEffect(() => {
     if (activeTab === 'veiculos') {
       carregarVeiculos();
+<<<<<<< HEAD
     } else if (activeTab === 'reservas') {
       carregarReservas();
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
     }
   }, [activeTab]);
 
@@ -56,6 +70,7 @@ const AdminDashboard = ({ onNavigate }) => {
     }
   };
 
+<<<<<<< HEAD
   const carregarReservas = async () => {
     try {
       setLoadingReservas(true);
@@ -70,6 +85,8 @@ const AdminDashboard = ({ onNavigate }) => {
     }
   };
 
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -238,6 +255,7 @@ const AdminDashboard = ({ onNavigate }) => {
       veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+<<<<<<< HEAD
   const filteredReservas = reservas.filter((reserva) => {
     const search = reservaSearch.toLowerCase();
     return (
@@ -260,6 +278,8 @@ const AdminDashboard = ({ onNavigate }) => {
     }
   };
 
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   const renderContent = () => {
     switch (activeTab) {
       case 'veiculos':
@@ -322,6 +342,7 @@ const AdminDashboard = ({ onNavigate }) => {
         return <Usuario />;
       case 'promocoes':
         return <Promocoes />;
+<<<<<<< HEAD
       case 'reservas':
         return (
           <div className="admin-content admin-reservas-section">
@@ -392,14 +413,19 @@ const AdminDashboard = ({ onNavigate }) => {
             )}
           </div>
         );
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
       case 'relatorios':
         return (
           <div className="admin-content">
             <h1>Relatórios</h1>
           </div>
         );
+<<<<<<< HEAD
       case 'forum':
         return <AdminForum />;
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
       default:
         return null;
     }
@@ -417,7 +443,11 @@ const AdminDashboard = ({ onNavigate }) => {
         </div>
         <div className="nav-actions">
           <div className="user-info">
+<<<<<<< HEAD
             <span>Administrador <FaCheckCircle style={{ color: '#4f8cff', marginLeft: 4, verticalAlign: 'middle' }} title="Verificado" /></span>
+=======
+            <span>Administrador</span>
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
           </div>
         </div>
       </header>

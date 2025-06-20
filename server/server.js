@@ -9,8 +9,11 @@ const usuariosRoutes = require('./routes/usuariosRoutes');
 const notificacoesRoutes = require('./routes/notificacoesRoutes');
 const relatoriosRoutes = require('./routes/relatoriosRoutes');
 const promocoesRoutes = require('./routes/promocoesRoutes');
+<<<<<<< HEAD
 const adminRoutes = require('./routes/adminRoutes');
 const forumRoutes = require('./routes/forumRoutes');
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 
 dotenv.config();
 
@@ -32,8 +35,11 @@ app.use('/api', usuariosRoutes);
 app.use('/api', notificacoesRoutes);
 app.use('/api', relatoriosRoutes);
 app.use('/api/promocoes', promocoesRoutes);
+<<<<<<< HEAD
 app.use('/admin', adminRoutes);
 app.use('/api/forum', forumRoutes);
+=======
+>>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
