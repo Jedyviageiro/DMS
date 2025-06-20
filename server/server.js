@@ -9,6 +9,8 @@ const usuariosRoutes = require('./routes/usuariosRoutes');
 const notificacoesRoutes = require('./routes/notificacoesRoutes');
 const relatoriosRoutes = require('./routes/relatoriosRoutes');
 const promocoesRoutes = require('./routes/promocoesRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const forumRoutes = require('./routes/forumRoutes');
 
 dotenv.config();
 
@@ -30,6 +32,8 @@ app.use('/api', usuariosRoutes);
 app.use('/api', notificacoesRoutes);
 app.use('/api', relatoriosRoutes);
 app.use('/api/promocoes', promocoesRoutes);
+app.use('/admin', adminRoutes);
+app.use('/api/forum', forumRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCar, FaTag, FaChartBar, FaSignOutAlt, FaBars, FaUsers } from 'react-icons/fa';
+import { FaCar, FaTag, FaChartBar, FaSignOutAlt, FaBars, FaUsers, FaCalendarAlt, FaComments } from 'react-icons/fa';
 
 const Sidebar = ({ activeTab, setActiveTab, isSidebarCollapsed, setIsSidebarCollapsed, handleLogout }) => {
   return (
@@ -26,6 +26,13 @@ const Sidebar = ({ activeTab, setActiveTab, isSidebarCollapsed, setIsSidebarColl
           {!isSidebarCollapsed && <span>Usuários</span>}
         </button>
         <button
+          className={`nav-link ${activeTab === 'reservas' ? 'active' : ''}`}
+          onClick={() => setActiveTab('reservas')}
+        >
+          <FaCalendarAlt />
+          {!isSidebarCollapsed && <span>Ver Reservas</span>}
+        </button>
+        <button
           className={`nav-link ${activeTab === 'promocoes' ? 'active' : ''}`}
           onClick={() => setActiveTab('promocoes')}
         >
@@ -38,6 +45,13 @@ const Sidebar = ({ activeTab, setActiveTab, isSidebarCollapsed, setIsSidebarColl
         >
           <FaChartBar />
           {!isSidebarCollapsed && <span>Relatórios</span>}
+        </button>
+        <button
+          className={`nav-link ${activeTab === 'forum' ? 'active' : ''}`}
+          onClick={() => setActiveTab('forum')}
+        >
+          <FaComments />
+          {!isSidebarCollapsed && <span>Fórum</span>}
         </button>
         <button className="nav-link logout" onClick={handleLogout}>
           <FaSignOutAlt />

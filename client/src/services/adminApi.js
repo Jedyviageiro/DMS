@@ -22,4 +22,17 @@ export const adminApi = {
   atualizarUsuario: (id, data) => api.put(`/api/usuarios/${id}`, data),
  
   excluirUsuario: (id) => api.delete(`/api/usuarios/${id}`),
+
+  // Reservas (admin)
+  listarReservas: () => api.get('/admin/reservas'),
+  atualizarStatusReserva: (reserva_id, status) => api.put(`/admin/reservas/${reserva_id}/status`, { status }),
+
+  // Fórum (admin)
+  getForumPosts: () => api.get('/api/forum/posts'),
+  createForumPost: (data) => api.post('/api/forum/posts', data),
+  deleteForumPost: (id) => api.delete(`/api/forum/posts/${id}`),
+  getForumReplies: (postId) => api.get(`/api/forum/posts/${postId}/respostas`),
+  createForumReply: (postId, data) => api.post(`/api/forum/posts/${postId}/respostas`, data),
+  deleteForumReply: (replyId) => api.delete(`/api/forum/respostas/${replyId}`),
+  banUser: (userId) => api.post(`/api/usuarios/${userId}/ban`),
 };

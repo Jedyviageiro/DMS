@@ -15,6 +15,7 @@ import {
   FaChevronRight,
   FaCamera,
   FaUserCircle,
+  FaComments
 } from 'react-icons/fa';
 import {
   getVehicles,
@@ -27,6 +28,7 @@ import {
   getPromocoes,
 } from '../../services/api';
 import '../../assets/styles/ClienteDashboard.css';
+import Forum from './Forum';
 
 const ClienteDashboard = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState('explorar');
@@ -267,6 +269,22 @@ const ClienteDashboard = ({ onNavigate }) => {
     const hasPromotion = showPromotionsOnly ? !!getApplicablePromotion(car) : true;
     return matchesSearch && hasPromotion;
   });
+
+  const handleShowNotifications = async () => {
+    if (!showNotifications) {
+      // Mark all as read when opening
+      const unread = notificacoes.filter(n => !n.lida);
+      for (const n of unread) {
+        try {
+          await markNotificationAsRead(n.id);
+        } catch (err) {
+          // ignore error
+        }
+      }
+      setNotificacoes(notificacoes.map(n => ({ ...n, lida: true })));
+    }
+    setShowNotifications(!showNotifications);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -534,6 +552,8 @@ const ClienteDashboard = ({ onNavigate }) => {
             </div>
           </div>
         );
+      case 'forum':
+        return <Forum />;
       default:
         return null;
     }
@@ -553,7 +573,7 @@ const ClienteDashboard = ({ onNavigate }) => {
           <div className="notifications-container">
             <button
               className="notification-button"
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={handleShowNotifications}
             >
               <FaBell size={20} />
               {notificacoes.filter((n) => !n.lida).length > 0 && (
@@ -563,26 +583,19 @@ const ClienteDashboard = ({ onNavigate }) => {
               )}
             </button>
             {showNotifications && (
-              <div className="notifications-dropdown">
+              <div className="notifications-dropdown teardrop-effect">
                 {notificacoes.length === 0 ? (
                   <p>Nenhuma notificação</p>
                 ) : (
-                  notificacoes.map((notificacao) => (
-                    <div
-                      key={notificacao.id}
-                      className={`notification-item ${!notificacao.lida ? 'unread' : ''}`}
+                  <div className={`notification-item ${!notificacoes[0].lida ? 'unread' : ''}`}>
+                    <p>{notificacoes[0].mensagem}</p>
+                    <button
+                      className="btn btn-text"
+                      onClick={() => setShowNotifications(false)}
                     >
-                      <p>{notificacao.mensagem}</p>
-                      {!notificacao.lida && (
-                        <button
-                          className="btn btn-text"
-                          onClick={() => handleMarcarNotificacaoLida(notificacao.id)}
-                        >
-                          Marcar como lida
-                        </button>
-                      )}
-                    </div>
-                  ))
+                      Fechar
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -631,6 +644,13 @@ const ClienteDashboard = ({ onNavigate }) => {
             >
               <FaUserEdit />
               {!isSidebarCollapsed && <span>Meu Perfil</span>}
+            </button>
+            <button
+              className={`nav-link ${activeTab === 'forum' ? 'active' : ''}`}
+              onClick={() => setActiveTab('forum')}
+            >
+              {FaComments ? <FaComments /> : <FaUserCircle />}
+              {!isSidebarCollapsed && <span>Fórum</span>}
             </button>
             <button className="nav-link logout" onClick={handleLogout}>
               <FaSignOutAlt />

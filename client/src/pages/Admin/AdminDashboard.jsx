@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FaCar, FaSearch } from 'react-icons/fa';
+import { FaCar, FaSearch, FaInbox, FaCheckCircle } from 'react-icons/fa';
 import { adminApi } from '../../services/api';
+import { adminApi as adminApiAdmin } from '../../services/adminApi';
 import Sidebar from './Sidebar';
 import VehicleModal from './VehicleModal';
 import Promocoes from './Promocoes';
 import Usuario from './Usuarios';
+import AdminForum from './AdminForum';
 import '../../assets/styles/AdminDashboard.css';
 
 const AdminDashboard = ({ onNavigate }) => {
@@ -27,10 +29,16 @@ const AdminDashboard = ({ onNavigate }) => {
     imagens: [],
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [reservas, setReservas] = useState([]);
+  const [loadingReservas, setLoadingReservas] = useState(false);
+  const [errorReservas, setErrorReservas] = useState(null);
+  const [reservaSearch, setReservaSearch] = useState('');
 
   useEffect(() => {
     if (activeTab === 'veiculos') {
       carregarVeiculos();
+    } else if (activeTab === 'reservas') {
+      carregarReservas();
     }
   }, [activeTab]);
 
@@ -45,6 +53,20 @@ const AdminDashboard = ({ onNavigate }) => {
       console.error('Erro:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const carregarReservas = async () => {
+    try {
+      setLoadingReservas(true);
+      const response = await adminApiAdmin.listarReservas();
+      setReservas(response.data.reservas);
+      setErrorReservas(null);
+    } catch (err) {
+      setErrorReservas('Erro ao carregar reservas');
+      console.error('Erro:', err);
+    } finally {
+      setLoadingReservas(false);
     }
   };
 
@@ -216,6 +238,28 @@ const AdminDashboard = ({ onNavigate }) => {
       veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredReservas = reservas.filter((reserva) => {
+    const search = reservaSearch.toLowerCase();
+    return (
+      reserva.usuario_nome.toLowerCase().includes(search) ||
+      reserva.usuario_email.toLowerCase().includes(search) ||
+      reserva.marca.toLowerCase().includes(search) ||
+      reserva.modelo.toLowerCase().includes(search) ||
+      reserva.status.toLowerCase().includes(search)
+    );
+  });
+
+  const handleStatusReserva = async (reserva_id, status) => {
+    if (!window.confirm(`Tem certeza que deseja ${status === 'confirmada' ? 'aceitar' : 'recusar'} esta reserva?`)) return;
+    try {
+      await adminApiAdmin.atualizarStatusReserva(reserva_id, status);
+      carregarReservas();
+    } catch (err) {
+      alert('Erro ao atualizar status da reserva');
+      console.error('Erro:', err);
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'veiculos':
@@ -278,12 +322,84 @@ const AdminDashboard = ({ onNavigate }) => {
         return <Usuario />;
       case 'promocoes':
         return <Promocoes />;
+      case 'reservas':
+        return (
+          <div className="admin-content admin-reservas-section">
+            <div className="admin-header">
+              <div>
+                <h1>Reservas dos Clientes</h1>
+                <p className="admin-section-desc">Gerencie as reservas feitas pelos clientes. Aceite ou recuse solicitações de reserva de veículos.</p>
+              </div>
+              <div className="admin-search-bar">
+                <FaSearch className="admin-search-icon" />
+                <input
+                  type="text"
+                  placeholder="Buscar por cliente, veículo ou status..."
+                  value={reservaSearch}
+                  onChange={e => setReservaSearch(e.target.value)}
+                />
+              </div>
+            </div>
+            {loadingReservas ? (
+              <div className="admin-loading">Carregando reservas...</div>
+            ) : errorReservas ? (
+              <div className="admin-error-message">{errorReservas}</div>
+            ) : filteredReservas.length === 0 ? (
+              <div className="admin-empty-state">
+                <FaInbox size={48} />
+                <p>Nenhuma reserva encontrada.</p>
+              </div>
+            ) : (
+              <div className="admin-table-container">
+                <table className="admin-table admin-reservas-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Cliente</th>
+                      <th>Email</th>
+                      <th>Veículo</th>
+                      <th>Data</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredReservas.map((reserva) => (
+                      <tr key={reserva.id}>
+                        <td>{reserva.id}</td>
+                        <td>{reserva.usuario_nome}</td>
+                        <td>{reserva.usuario_email}</td>
+                        <td>{reserva.marca} {reserva.modelo} ({reserva.ano})</td>
+                        <td>{new Date(reserva.data_reserva).toLocaleString('pt-BR')}</td>
+                        <td>
+                          <span className={`reserva-status-badge status-${reserva.status}`}>
+                            {reserva.status.charAt(0).toUpperCase() + reserva.status.slice(1)}
+                          </span>
+                        </td>
+                        <td>
+                          {reserva.status === 'pendente' && (
+                            <div className="admin-reservas-actions">
+                              <button className="admin-btn-primary" onClick={() => handleStatusReserva(reserva.id, 'confirmada')}>Aceitar</button>
+                              <button className="admin-btn-delete" onClick={() => handleStatusReserva(reserva.id, 'cancelada')}>Recusar</button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
       case 'relatorios':
         return (
           <div className="admin-content">
             <h1>Relatórios</h1>
           </div>
         );
+      case 'forum':
+        return <AdminForum />;
       default:
         return null;
     }
@@ -301,7 +417,7 @@ const AdminDashboard = ({ onNavigate }) => {
         </div>
         <div className="nav-actions">
           <div className="user-info">
-            <span>Administrador</span>
+            <span>Administrador <FaCheckCircle style={{ color: '#4f8cff', marginLeft: 4, verticalAlign: 'middle' }} title="Verificado" /></span>
           </div>
         </div>
       </header>
