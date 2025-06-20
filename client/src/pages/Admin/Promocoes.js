@@ -3,6 +3,7 @@ import { FaTag, FaSearch } from 'react-icons/fa';
 import { adminApi } from '../../services/api';
 import PromocaoModal from './PromocaoModal';
 import '../../assets/styles/AdminDashboard.css';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Promocoes = () => {
   const [promocoes, setPromocoes] = useState([]);
@@ -24,6 +25,8 @@ const Promocoes = () => {
     modelo: '',
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [confirmModal, setConfirmModal] = useState({ open: false, message: '', onConfirm: null });
+  const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
   useEffect(() => {
     carregarPromocoes();
@@ -103,16 +106,22 @@ const Promocoes = () => {
     setShowEditModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir esta promoção?')) {
-      try {
-        await adminApi.deletarPromocao(id);
-        carregarPromocoes();
-      } catch (err) {
-        setError('Erro ao excluir promoção');
-        console.error('Erro:', err);
+  const handleDelete = (id) => {
+    setConfirmModal({
+      open: true,
+      message: 'Tem certeza que deseja excluir esta promoção?',
+      onConfirm: async () => {
+        try {
+          await adminApi.deletarPromocao(id);
+          carregarPromocoes();
+        } catch (err) {
+          setErrorModal({ open: true, message: 'Erro ao excluir promoção' });
+          console.error('Erro:', err);
+        } finally {
+          setConfirmModal({ open: false, message: '', onConfirm: null });
+        }
       }
-    }
+    });
   };
 
   const filteredPromocoes = promocoes.filter(
@@ -187,6 +196,24 @@ const Promocoes = () => {
           formData={formData}
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
+        />
+      )}
+      {confirmModal.open && (
+        <ConfirmModal
+          open={confirmModal.open}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal({ open: false, message: '', onConfirm: null })}
+        />
+      )}
+      {errorModal.open && (
+        <ConfirmModal
+          open={errorModal.open}
+          message={errorModal.message}
+          onConfirm={() => setErrorModal({ open: false, message: '' })}
+          onCancel={() => setErrorModal({ open: false, message: '' })}
+          confirmText="OK"
+          cancelText=""
         />
       )}
     </div>

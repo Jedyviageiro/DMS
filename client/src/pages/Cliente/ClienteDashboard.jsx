@@ -15,10 +15,7 @@ import {
   FaChevronRight,
   FaCamera,
   FaUserCircle,
-<<<<<<< HEAD
   FaComments
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 } from 'react-icons/fa';
 import {
   getVehicles,
@@ -31,10 +28,8 @@ import {
   getPromocoes,
 } from '../../services/api';
 import '../../assets/styles/ClienteDashboard.css';
-<<<<<<< HEAD
 import Forum from './Forum';
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
+import ConfirmModal from '../../components/ConfirmModal';
 
 const ClienteDashboard = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState('explorar');
@@ -61,6 +56,8 @@ const ClienteDashboard = ({ onNavigate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
   const fileInputRef = useRef(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -276,7 +273,6 @@ const ClienteDashboard = ({ onNavigate }) => {
     return matchesSearch && hasPromotion;
   });
 
-<<<<<<< HEAD
   const handleShowNotifications = async () => {
     if (!showNotifications) {
       // Mark all as read when opening
@@ -293,8 +289,6 @@ const ClienteDashboard = ({ onNavigate }) => {
     setShowNotifications(!showNotifications);
   };
 
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   const renderContent = () => {
     switch (activeTab) {
       case 'explorar':
@@ -561,11 +555,8 @@ const ClienteDashboard = ({ onNavigate }) => {
             </div>
           </div>
         );
-<<<<<<< HEAD
       case 'forum':
         return <Forum />;
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
       default:
         return null;
     }
@@ -585,11 +576,7 @@ const ClienteDashboard = ({ onNavigate }) => {
           <div className="notifications-container">
             <button
               className="notification-button"
-<<<<<<< HEAD
               onClick={handleShowNotifications}
-=======
-              onClick={() => setShowNotifications(!showNotifications)}
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
             >
               <FaBell size={20} />
               {notificacoes.filter((n) => !n.lida).length > 0 && (
@@ -599,7 +586,6 @@ const ClienteDashboard = ({ onNavigate }) => {
               )}
             </button>
             {showNotifications && (
-<<<<<<< HEAD
               <div className="notifications-dropdown teardrop-effect">
                 {notificacoes.length === 0 ? (
                   <p>Nenhuma notificação</p>
@@ -613,28 +599,6 @@ const ClienteDashboard = ({ onNavigate }) => {
                       Fechar
                     </button>
                   </div>
-=======
-              <div className="notifications-dropdown">
-                {notificacoes.length === 0 ? (
-                  <p>Nenhuma notificação</p>
-                ) : (
-                  notificacoes.map((notificacao) => (
-                    <div
-                      key={notificacao.id}
-                      className={`notification-item ${!notificacao.lida ? 'unread' : ''}`}
-                    >
-                      <p>{notificacao.mensagem}</p>
-                      {!notificacao.lida && (
-                        <button
-                          className="btn btn-text"
-                          onClick={() => handleMarcarNotificacaoLida(notificacao.id)}
-                        >
-                          Marcar como lida
-                        </button>
-                      )}
-                    </div>
-                  ))
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
                 )}
               </div>
             )}
@@ -684,16 +648,13 @@ const ClienteDashboard = ({ onNavigate }) => {
               <FaUserEdit />
               {!isSidebarCollapsed && <span>Meu Perfil</span>}
             </button>
-<<<<<<< HEAD
             <button
               className={`nav-link ${activeTab === 'forum' ? 'active' : ''}`}
               onClick={() => setActiveTab('forum')}
             >
-              {FaComments ? <FaComments /> : <FaUserCircle />}
+              <FaComments />
               {!isSidebarCollapsed && <span>Fórum</span>}
             </button>
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
             <button className="nav-link logout" onClick={handleLogout}>
               <FaSignOutAlt />
               {!isSidebarCollapsed && <span>Sair</span>}
@@ -788,6 +749,17 @@ const ClienteDashboard = ({ onNavigate }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {showErrorModal && (
+        <ConfirmModal
+          open={showErrorModal}
+          message={errorModalMessage}
+          onConfirm={() => setShowErrorModal(false)}
+          onCancel={() => setShowErrorModal(false)}
+          confirmText="OK"
+          cancelText=""
+        />
       )}
     </div>
   );

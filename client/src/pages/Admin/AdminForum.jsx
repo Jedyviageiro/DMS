@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUserCircle, FaChevronDown, FaChevronUp, FaCheckCircle } from 'react-icons/fa';
 import { MdDeleteOutline, MdBlock } from 'react-icons/md';
 import { adminApi } from '../../services/adminApi';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const getProfileImage = (email) => {
   if (!email) return null;
@@ -30,6 +31,8 @@ const AdminForum = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const profileImage = user ? getProfileImage(user.email) : null;
   const isAdmin = user && user.role === 'admin';
+  const [confirmModal, setConfirmModal] = useState({ open: false, message: '', onConfirm: null });
+  const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
   useEffect(() => {
     fetchPosts();
@@ -122,34 +125,55 @@ const AdminForum = () => {
   };
 
   // Admin controls
-  const handleDeletePost = async (postId) => {
-    if (!window.confirm('Tem certeza que deseja deletar este post?')) return;
-    try {
-      await adminApi.deleteForumPost(postId);
-      fetchPosts();
-    } catch (err) {
-      setError('Erro ao deletar post');
-    }
+  const handleDeletePost = (postId) => {
+    setConfirmModal({
+      open: true,
+      message: 'Tem certeza que deseja deletar este post?',
+      onConfirm: async () => {
+        try {
+          await adminApi.deleteForumPost(postId);
+          fetchPosts();
+        } catch (err) {
+          setErrorModal({ open: true, message: 'Erro ao deletar post' });
+        } finally {
+          setConfirmModal({ open: false, message: '', onConfirm: null });
+        }
+      }
+    });
   };
 
-  const handleDeleteReply = async (replyId, postId) => {
-    if (!window.confirm('Tem certeza que deseja deletar esta resposta?')) return;
-    try {
-      await adminApi.deleteForumReply(replyId);
-      handleToggleReplies(posts.find(p => p.id === postId));
-    } catch (err) {
-      setError('Erro ao deletar resposta');
-    }
+  const handleDeleteReply = (replyId, postId) => {
+    setConfirmModal({
+      open: true,
+      message: 'Tem certeza que deseja deletar esta resposta?',
+      onConfirm: async () => {
+        try {
+          await adminApi.deleteForumReply(replyId);
+          handleToggleReplies(posts.find(p => p.id === postId));
+        } catch (err) {
+          setErrorModal({ open: true, message: 'Erro ao deletar resposta' });
+        } finally {
+          setConfirmModal({ open: false, message: '', onConfirm: null });
+        }
+      }
+    });
   };
 
-  const handleBanUser = async (userId) => {
-    if (!window.confirm('Tem certeza que deseja banir este usuário?')) return;
-    try {
-      await adminApi.banUser(userId);
-      fetchPosts();
-    } catch (err) {
-      setError('Erro ao banir usuário');
-    }
+  const handleBanUser = (userId) => {
+    setConfirmModal({
+      open: true,
+      message: 'Tem certeza que deseja banir este usuário?',
+      onConfirm: async () => {
+        try {
+          await adminApi.banUser(userId);
+          fetchPosts();
+        } catch (err) {
+          setErrorModal({ open: true, message: 'Erro ao banir usuário' });
+        } finally {
+          setConfirmModal({ open: false, message: '', onConfirm: null });
+        }
+      }
+    });
   };
 
   const todayPosts = posts.filter(p => isToday(p.data_postagem));
@@ -272,6 +296,24 @@ const AdminForum = () => {
             );
           })}
         </div>
+      )}
+      {confirmModal.open && (
+        <ConfirmModal
+          open={confirmModal.open}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal({ open: false, message: '', onConfirm: null })}
+        />
+      )}
+      {errorModal.open && (
+        <ConfirmModal
+          open={errorModal.open}
+          message={errorModal.message}
+          onConfirm={() => setErrorModal({ open: false, message: '' })}
+          onCancel={() => setErrorModal({ open: false, message: '' })}
+          confirmText="OK"
+          cancelText=""
+        />
       )}
     </div>
   );

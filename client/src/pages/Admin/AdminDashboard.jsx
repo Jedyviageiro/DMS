@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
-<<<<<<< HEAD
 import { FaCar, FaSearch, FaInbox, FaCheckCircle } from 'react-icons/fa';
 import { adminApi } from '../../services/api';
 import { adminApi as adminApiAdmin } from '../../services/adminApi';
-=======
-import { FaCar, FaSearch } from 'react-icons/fa';
-import { adminApi } from '../../services/api';
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 import Sidebar from './Sidebar';
 import VehicleModal from './VehicleModal';
 import Promocoes from './Promocoes';
 import Usuario from './Usuarios';
-<<<<<<< HEAD
 import AdminForum from './AdminForum';
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 import '../../assets/styles/AdminDashboard.css';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const AdminDashboard = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState('veiculos');
@@ -37,22 +30,18 @@ const AdminDashboard = ({ onNavigate }) => {
     imagens: [],
   });
   const [searchTerm, setSearchTerm] = useState('');
-<<<<<<< HEAD
   const [reservas, setReservas] = useState([]);
   const [loadingReservas, setLoadingReservas] = useState(false);
   const [errorReservas, setErrorReservas] = useState(null);
   const [reservaSearch, setReservaSearch] = useState('');
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
+  const [confirmModal, setConfirmModal] = useState({ open: false, message: '', onConfirm: null });
+  const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
   useEffect(() => {
     if (activeTab === 'veiculos') {
       carregarVeiculos();
-<<<<<<< HEAD
     } else if (activeTab === 'reservas') {
       carregarReservas();
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
     }
   }, [activeTab]);
 
@@ -70,7 +59,6 @@ const AdminDashboard = ({ onNavigate }) => {
     }
   };
 
-<<<<<<< HEAD
   const carregarReservas = async () => {
     try {
       setLoadingReservas(true);
@@ -85,8 +73,6 @@ const AdminDashboard = ({ onNavigate }) => {
     }
   };
 
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -135,7 +121,7 @@ const AdminDashboard = ({ onNavigate }) => {
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length + formData.imagens.length > 4) {
-      alert('Você pode adicionar no máximo 4 imagens por veículo');
+      setErrorModal({ open: true, message: 'Você pode adicionar no máximo 4 imagens por veículo' });
       return;
     }
     try {
@@ -157,7 +143,7 @@ const AdminDashboard = ({ onNavigate }) => {
       }
     } catch (error) {
       console.error('Error processing images:', error);
-      alert('Erro ao processar as imagens. Por favor, tente novamente.');
+      setErrorModal({ open: true, message: 'Erro ao processar as imagens. Por favor, tente novamente.' });
     }
   };
 
@@ -231,16 +217,22 @@ const AdminDashboard = ({ onNavigate }) => {
     setShowEditModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este veículo?')) {
-      try {
-        await adminApi.excluirVeiculo(id);
-        carregarVeiculos();
-      } catch (err) {
-        setError('Erro ao excluir veículo');
-        console.error('Erro:', err);
+  const handleDelete = (id) => {
+    setConfirmModal({
+      open: true,
+      message: 'Tem certeza que deseja excluir este veículo?',
+      onConfirm: async () => {
+        try {
+          await adminApi.excluirVeiculo(id);
+          carregarVeiculos();
+        } catch (err) {
+          setErrorModal({ open: true, message: 'Erro ao excluir veículo' });
+          console.error('Erro:', err);
+        } finally {
+          setConfirmModal({ open: false, message: '', onConfirm: null });
+        }
       }
-    }
+    });
   };
 
   const handleLogout = () => {
@@ -255,7 +247,6 @@ const AdminDashboard = ({ onNavigate }) => {
       veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-<<<<<<< HEAD
   const filteredReservas = reservas.filter((reserva) => {
     const search = reservaSearch.toLowerCase();
     return (
@@ -267,19 +258,24 @@ const AdminDashboard = ({ onNavigate }) => {
     );
   });
 
-  const handleStatusReserva = async (reserva_id, status) => {
-    if (!window.confirm(`Tem certeza que deseja ${status === 'confirmada' ? 'aceitar' : 'recusar'} esta reserva?`)) return;
-    try {
-      await adminApiAdmin.atualizarStatusReserva(reserva_id, status);
-      carregarReservas();
-    } catch (err) {
-      alert('Erro ao atualizar status da reserva');
-      console.error('Erro:', err);
-    }
+  const handleStatusReserva = (reserva_id, status) => {
+    setConfirmModal({
+      open: true,
+      message: `Tem certeza que deseja ${status === 'confirmada' ? 'aceitar' : 'recusar'} esta reserva?`,
+      onConfirm: async () => {
+        try {
+          await adminApiAdmin.atualizarStatusReserva(reserva_id, status);
+          carregarReservas();
+        } catch (err) {
+          setErrorModal({ open: true, message: 'Erro ao atualizar status da reserva' });
+          console.error('Erro:', err);
+        } finally {
+          setConfirmModal({ open: false, message: '', onConfirm: null });
+        }
+      }
+    });
   };
 
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
   const renderContent = () => {
     switch (activeTab) {
       case 'veiculos':
@@ -342,7 +338,6 @@ const AdminDashboard = ({ onNavigate }) => {
         return <Usuario />;
       case 'promocoes':
         return <Promocoes />;
-<<<<<<< HEAD
       case 'reservas':
         return (
           <div className="admin-content admin-reservas-section">
@@ -413,19 +408,14 @@ const AdminDashboard = ({ onNavigate }) => {
             )}
           </div>
         );
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
       case 'relatorios':
         return (
           <div className="admin-content">
             <h1>Relatórios</h1>
           </div>
         );
-<<<<<<< HEAD
       case 'forum':
         return <AdminForum />;
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
       default:
         return null;
     }
@@ -443,11 +433,7 @@ const AdminDashboard = ({ onNavigate }) => {
         </div>
         <div className="nav-actions">
           <div className="user-info">
-<<<<<<< HEAD
             <span>Administrador <FaCheckCircle style={{ color: '#4f8cff', marginLeft: 4, verticalAlign: 'middle' }} title="Verificado" /></span>
-=======
-            <span>Administrador</span>
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
           </div>
         </div>
       </header>
@@ -473,6 +459,24 @@ const AdminDashboard = ({ onNavigate }) => {
           handleImageUpload={handleImageUpload}
           handleRemoveImage={handleRemoveImage}
           handleSubmit={handleSubmit}
+        />
+      )}
+      {confirmModal.open && (
+        <ConfirmModal
+          open={confirmModal.open}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal({ open: false, message: '', onConfirm: null })}
+        />
+      )}
+      {errorModal.open && (
+        <ConfirmModal
+          open={errorModal.open}
+          message={errorModal.message}
+          onConfirm={() => setErrorModal({ open: false, message: '' })}
+          onCancel={() => setErrorModal({ open: false, message: '' })}
+          confirmText="OK"
+          cancelText=""
         />
       )}
     </div>

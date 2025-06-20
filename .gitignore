@@ -3,3 +3,5 @@ node_modules/
 # Ignore cache
 client/node_modules/
 client/node_modules/.cache/
+server/node_modules/
+server/node_modules/.cache

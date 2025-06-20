@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaSearch, FaEdit, FaTrash } from 'react-icons/fa';
 import { adminApi } from '../../services/api';
 import '../../assets/styles/AdminDashboard.css';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Usuario = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -17,6 +18,8 @@ const Usuario = () => {
     telefone: '',
     role: 'cliente',
   });
+  const [confirmModal, setConfirmModal] = useState({ open: false, message: '', onConfirm: null });
+  const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
   useEffect(() => {
     carregarUsuarios();
@@ -116,19 +119,24 @@ const Usuario = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-      setActionLoading(true);
-      try {
-        await adminApi.excluirUsuario(id);
-        carregarUsuarios();
-      } catch (err) {
-        console.error('Erro ao excluir usuário:', err);
-        setError('Erro ao excluir usuário');
-      } finally {
-        setActionLoading(false);
+  const handleDelete = (id) => {
+    setConfirmModal({
+      open: true,
+      message: 'Tem certeza que deseja excluir este usuário?',
+      onConfirm: async () => {
+        setActionLoading(true);
+        try {
+          await adminApi.excluirUsuario(id);
+          carregarUsuarios();
+        } catch (err) {
+          setErrorModal({ open: true, message: 'Erro ao excluir usuário' });
+          console.error('Erro ao excluir usuário:', err);
+        } finally {
+          setActionLoading(false);
+          setConfirmModal({ open: false, message: '', onConfirm: null });
+        }
       }
-    }
+    });
   };
 
   const filteredUsuarios = usuarios.filter((usuario) =>
@@ -178,7 +186,7 @@ const Usuario = () => {
                 </button>
                 <button
                   className="admin-btn-delete"
-                  onClick={() => handleDelete(usuario.id)}
+                  onClick={() => setSelectedUsuario(usuario)}
                   disabled={actionLoading}
                 >
                   <FaTrash /> Excluir
@@ -259,6 +267,26 @@ const Usuario = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {confirmModal.open && (
+        <ConfirmModal
+          open={confirmModal.open}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal({ open: false, message: '', onConfirm: null })}
+        />
+      )}
+
+      {errorModal.open && (
+        <ConfirmModal
+          open={errorModal.open}
+          message={errorModal.message}
+          onConfirm={() => setErrorModal({ open: false, message: '' })}
+          onCancel={() => setErrorModal({ open: false, message: '' })}
+          confirmText="OK"
+          cancelText=""
+        />
       )}
     </div>
   );
