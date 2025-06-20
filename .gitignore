@@ -1,2 +1,5 @@
 server/.env
 node_modules/
+# Ignore cache
+client/node_modules/
+client/node_modules/.cache/
