@@ -22,7 +22,6 @@ export const adminApi = {
   atualizarUsuario: (id, data) => api.put(`/api/usuarios/${id}`, data),
  
   excluirUsuario: (id) => api.delete(`/api/usuarios/${id}`),
-<<<<<<< HEAD
 
   // Reservas (admin)
   listarReservas: () => api.get('/admin/reservas'),
@@ -36,6 +35,4 @@ export const adminApi = {
   createForumReply: (postId, data) => api.post(`/api/forum/posts/${postId}/respostas`, data),
   deleteForumReply: (replyId) => api.delete(`/api/forum/respostas/${replyId}`),
   banUser: (userId) => api.post(`/api/usuarios/${userId}/ban`),
-=======
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 };

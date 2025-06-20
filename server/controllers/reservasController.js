@@ -163,78 +163,8 @@ const cancelarReserva = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// ADMIN: Listar todas as reservas com info de usuário e veículo
-const listarTodasReservas = async (req, res) => {
-  try {
-    const [reservas] = await pool.query(
-      `SELECT r.id, r.usuario_id, r.veiculo_id, r.data_reserva, r.status,
-              u.nome as usuario_nome, u.email as usuario_email,
-              v.marca, v.modelo, v.ano, v.preco
-       FROM reservas r
-       JOIN usuarios u ON r.usuario_id = u.id
-       JOIN veiculos v ON r.veiculo_id = v.id
-       ORDER BY r.data_reserva DESC`
-    );
-    res.status(200).json({ reservas });
-  } catch (error) {
-    console.error('Erro ao listar todas as reservas:', error);
-    res.status(500).json({ mensagem: 'Erro no servidor' });
-  }
-};
-
-// ADMIN: Atualizar status da reserva (aceitar/recusar)
-const atualizarStatusReserva = async (req, res) => {
-  const { reserva_id } = req.params;
-  const { status } = req.body; // 'confirmada' ou 'cancelada'
-  if (!['confirmada', 'cancelada'].includes(status)) {
-    return res.status(400).json({ mensagem: 'Status inválido' });
-  }
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    await connection.beginTransaction();
-    const [reservas] = await connection.query('SELECT * FROM reservas WHERE id = ?', [reserva_id]);
-    if (reservas.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ mensagem: 'Reserva não encontrada' });
-    }
-    const reserva = reservas[0];
-    if (reserva.status !== 'pendente') {
-      await connection.rollback();
-      return res.status(400).json({ mensagem: 'Apenas reservas pendentes podem ser atualizadas' });
-    }
-    await connection.query('UPDATE reservas SET status = ? WHERE id = ?', [status, reserva_id]);
-    // Se recusar, devolve estoque
-    if (status === 'cancelada') {
-      await connection.query('UPDATE veiculos SET estoque = estoque + 1 WHERE id = ?', [reserva.veiculo_id]);
-    }
-    // Notificação para o usuário
-    await connection.query(
-      'INSERT INTO notificacoes (usuario_id, mensagem, lida) VALUES (?, ?, ?)',
-      [reserva.usuario_id, `Reserva #${reserva_id} foi ${status === 'confirmada' ? 'confirmada' : 'recusada'}`, false]
-    );
-    await connection.commit();
-    res.status(200).json({ mensagem: `Reserva ${status === 'confirmada' ? 'confirmada' : 'recusada'} com sucesso` });
-  } catch (error) {
-    if (connection) await connection.rollback();
-    console.error('Erro ao atualizar status da reserva:', error);
-    res.status(500).json({ mensagem: 'Erro no servidor' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-module.exports = {
-  criarPreReserva,
-  listarReservasCliente,
-  cancelarReserva,
-  listarTodasReservas, // admin
-  atualizarStatusReserva // admin
-=======
 module.exports = {
   criarPreReserva,
   listarReservasCliente,
   cancelarReserva
->>>>>>> b8c950df1db816c1bccb1d2262b0f65792127105
 };
