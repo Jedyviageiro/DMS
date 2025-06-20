@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaCar, FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaBars, FaSignOutAlt, FaChartBar, FaTag, FaUpload } from 'react-icons/fa';
+import { FaCar, FaSearch } from 'react-icons/fa';
 import { adminApi } from '../../services/api';
+import Sidebar from './Sidebar';
+import VehicleModal from './VehicleModal';
+import Promocoes from './Promocoes';
+import Usuario from './Usuarios';
 import '../../assets/styles/AdminDashboard.css';
 
 const AdminDashboard = ({ onNavigate }) => {
@@ -20,13 +24,15 @@ const AdminDashboard = ({ onNavigate }) => {
     combustivel: '',
     descricao: '',
     estoque: '',
-    imagens: []
+    imagens: [],
   });
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    carregarVeiculos();
-  }, []);
+    if (activeTab === 'veiculos') {
+      carregarVeiculos();
+    }
+  }, [activeTab]);
 
   const carregarVeiculos = async () => {
     try {
@@ -44,9 +50,9 @@ const AdminDashboard = ({ onNavigate }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -80,8 +86,6 @@ const AdminDashboard = ({ onNavigate }) => {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-
-          // Convert to JPEG with 0.7 quality
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
           resolve(compressedDataUrl);
         };
@@ -91,27 +95,17 @@ const AdminDashboard = ({ onNavigate }) => {
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    // Limit to 4 images
     if (files.length + formData.imagens.length > 4) {
       alert('Você pode adicionar no máximo 4 imagens por veículo');
       return;
     }
     try {
-      // Compress each image
-      const compressedImages = await Promise.all(
-        files.map(file => compressImage(file))
-      );
-      
-      // Combine with existing images
+      const compressedImages = await Promise.all(files.map((file) => compressImage(file)));
       const newImages = [...formData.imagens, ...compressedImages].slice(0, 4);
-      
-      // Update form data with new images
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        imagens: newImages
+        imagens: newImages,
       }));
-
-      // Save to localStorage with a unique key
       let carKey;
       if (selectedVeiculo && selectedVeiculo.id) {
         carKey = `car_images_${selectedVeiculo.id}`;
@@ -119,10 +113,8 @@ const AdminDashboard = ({ onNavigate }) => {
         carKey = `car_images_${formData.marca}_${formData.modelo}_${formData.ano}`;
       }
       localStorage.setItem(carKey, JSON.stringify(newImages));
-
-      // If editing, update selectedVeiculo as well
       if (selectedVeiculo) {
-        setSelectedVeiculo(prev => ({ ...prev, imagens: newImages }));
+        setSelectedVeiculo((prev) => ({ ...prev, imagens: newImages }));
       }
     } catch (error) {
       console.error('Error processing images:', error);
@@ -131,9 +123,9 @@ const AdminDashboard = ({ onNavigate }) => {
   };
 
   const handleRemoveImage = (index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      imagens: prev.imagens.filter((_, i) => i !== index)
+      imagens: prev.imagens.filter((_, i) => i !== index),
     }));
   };
 
@@ -142,7 +134,6 @@ const AdminDashboard = ({ onNavigate }) => {
     try {
       let carKey;
       let images = formData.imagens;
-      
       if (selectedVeiculo && selectedVeiculo.id) {
         carKey = `car_images_${selectedVeiculo.id}`;
         const storedImages = localStorage.getItem(carKey);
@@ -152,26 +143,20 @@ const AdminDashboard = ({ onNavigate }) => {
         const storedImages = localStorage.getItem(carKey);
         if (storedImages) images = JSON.parse(storedImages);
       }
-
-      // Remove images from formData before sending to server
       const { imagens, ...submitData } = formData;
-
       if (selectedVeiculo) {
         await adminApi.atualizarVeiculo(selectedVeiculo.id, submitData);
         setShowEditModal(false);
         setSelectedVeiculo(null);
       } else {
         const response = await adminApi.adicionarVeiculo(submitData);
-        // After adding, move images to the new car id key
         if (response.data.veiculo) {
           const newKey = `car_images_${response.data.veiculo.id}`;
           localStorage.setItem(newKey, JSON.stringify(images));
-          // Remove temp key
           localStorage.removeItem(carKey);
         }
         setShowAddModal(false);
       }
-
       setFormData({
         marca: '',
         modelo: '',
@@ -180,7 +165,7 @@ const AdminDashboard = ({ onNavigate }) => {
         combustivel: '',
         descricao: '',
         estoque: '',
-        imagens: []
+        imagens: [],
       });
       carregarVeiculos();
     } catch (err) {
@@ -194,7 +179,6 @@ const AdminDashboard = ({ onNavigate }) => {
     const carKey = `car_images_${veiculo.id}`;
     const storedImages = localStorage.getItem(carKey);
     const images = storedImages ? JSON.parse(storedImages) : [];
-    
     setFormData({
       marca: veiculo.marca,
       modelo: veiculo.modelo,
@@ -203,7 +187,7 @@ const AdminDashboard = ({ onNavigate }) => {
       combustivel: veiculo.combustivel,
       descricao: veiculo.descricao,
       estoque: veiculo.estoque,
-      imagens: images
+      imagens: images,
     });
     setShowEditModal(true);
   };
@@ -226,9 +210,10 @@ const AdminDashboard = ({ onNavigate }) => {
     onNavigate('landing');
   };
 
-  const filteredVeiculos = veiculos.filter(veiculo =>
-    veiculo.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredVeiculos = veiculos.filter(
+    (veiculo) =>
+      veiculo.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const renderContent = () => {
@@ -249,20 +234,17 @@ const AdminDashboard = ({ onNavigate }) => {
                   />
                 </div>
                 <button className="admin-btn-primary" onClick={() => setShowAddModal(true)}>
-                  <FaPlus /> Adicionar Veículo
+                  <FaCar /> Adicionar Veículo
                 </button>
               </div>
             </div>
-
             {error && <div className="admin-error-message">{error}</div>}
-
             <div className="admin-veiculos-grid">
-              {filteredVeiculos.map(veiculo => {
+              {filteredVeiculos.map((veiculo) => {
                 const carKey = `car_images_${veiculo.id}`;
                 const storedImages = localStorage.getItem(carKey);
                 const images = storedImages ? JSON.parse(storedImages) : [];
                 const firstImage = images.length > 0 ? images[0] : null;
-
                 return (
                   <div key={veiculo.id} className="admin-veiculo-card">
                     <div className="admin-veiculo-image">
@@ -279,10 +261,10 @@ const AdminDashboard = ({ onNavigate }) => {
                       <p>Estoque: {veiculo.estoque}</p>
                       <div className="admin-veiculo-actions">
                         <button className="admin-btn-edit" onClick={() => handleEdit(veiculo)}>
-                          <FaEdit /> Editar
+                          <FaCar /> Editar
                         </button>
                         <button className="admin-btn-delete" onClick={() => handleDelete(veiculo.id)}>
-                          <FaTrash /> Excluir
+                          <FaCar /> Excluir
                         </button>
                       </div>
                     </div>
@@ -292,18 +274,14 @@ const AdminDashboard = ({ onNavigate }) => {
             </div>
           </div>
         );
+      case 'usuarios':
+        return <Usuario />;
       case 'promocoes':
-        return (
-          <div className="admin-content">
-            <h1>Gerenciar Promoções</h1>
-            {/* Implementar gerenciamento de promoções */}
-          </div>
-        );
+        return <Promocoes />;
       case 'relatorios':
         return (
           <div className="admin-content">
             <h1>Relatórios</h1>
-            {/* Implementar relatórios */}
           </div>
         );
       default:
@@ -311,146 +289,12 @@ const AdminDashboard = ({ onNavigate }) => {
     }
   };
 
-  const renderImagePreview = (images) => {
-    if (!images || images.length === 0) {
-      return (
-        <div className="image-preview-placeholder">
-          <FaCar size={40} />
-          <p>Nenhuma imagem selecionada</p>
-          <small>Clique em "Selecionar Imagens" para adicionar fotos do veículo</small>
-        </div>
-      );
-    }
-
-    return (
-      <div className="image-preview-grid">
-        {images.map((image, index) => (
-          <div key={index} className="image-preview-item">
-            <img src={image} alt={`Preview ${index + 1}`} />
-            <button
-              type="button"
-              className="remove-image-btn"
-              onClick={() => handleRemoveImage(index)}
-            >
-              <FaTimes />
-            </button>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderImageUploadSection = () => (
-    <div className="form-group">
-      <label>Imagens do Veículo (máximo 4)</label>
-      <div className="image-upload-container">
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageUpload}
-          className="image-upload-input"
-        />
-        <div className="image-upload-button">
-          <FaUpload /> Selecionar Imagens
-        </div>
-      </div>
-      {renderImagePreview(formData.imagens)}
-      <small className="image-upload-hint">
-        Formatos aceitos: Todos. Tamanho máximo: 5MB por imagem. Máximo 4 imagens.
-      </small>
-    </div>
-  );
-
-  const renderModalForm = () => (
-    <form onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label>Marca</label>
-        <input
-          type="text"
-          name="marca"
-          value={formData.marca}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
-      <div className="form-group">
-        <label>Modelo</label>
-        <input
-          type="text"
-          name="modelo"
-          value={formData.modelo}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
-      <div className="form-group">
-        <label>Ano</label>
-        <input
-          type="number"
-          name="ano"
-          value={formData.ano}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
-      <div className="form-group">
-        <label>Preço</label>
-        <input
-          type="number"
-          name="preco"
-          value={formData.preco}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="combustivel">Combustível</label>
-        <input
-          type="text"
-          id="combustivel"
-          name="combustivel"
-          value={formData.combustivel}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="descricao">Descrição</label>
-        <textarea
-          id="descricao"
-          name="descricao"
-          value={formData.descricao}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
-      <div className="form-group">
-        <label>Estoque</label>
-        <input
-          type="number"
-          name="estoque"
-          value={formData.estoque}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
-      {renderImageUploadSection()}
-      <div className="form-actions">
-        <button type="submit" className="admin-btn-primary">
-          {selectedVeiculo ? 'Atualizar' : 'Adicionar'} Veículo
-        </button>
-      </div>
-    </form>
-  );
-
-  if (loading) {
+  if (loading && activeTab === 'veiculos') {
     return <div className="admin-loading">Carregando...</div>;
   }
 
   return (
     <div className="dashboard-container">
-      {/* Top Navbar */}
       <header className="top-navbar">
         <div className="logo">
           <h1>AutoElite - Admin</h1>
@@ -461,74 +305,32 @@ const AdminDashboard = ({ onNavigate }) => {
           </div>
         </div>
       </header>
-
       <div className="dashboard-wrapper">
-        {/* Sidebar */}
-        <nav className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-          <button 
-            className="collapse-button"
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          >
-            <FaBars />
-          </button>
-          <div className="nav-links">
-            <button 
-              className={`nav-link ${activeTab === 'veiculos' ? 'active' : ''}`}
-              onClick={() => setActiveTab('veiculos')}
-            >
-              <FaCar />
-              {!isSidebarCollapsed && <span>Veículos</span>}
-            </button>
-            <button 
-              className={`nav-link ${activeTab === 'promocoes' ? 'active' : ''}`}
-              onClick={() => setActiveTab('promocoes')}
-            >
-              <FaTag />
-              {!isSidebarCollapsed && <span>Promoções</span>}
-            </button>
-            <button 
-              className={`nav-link ${activeTab === 'relatorios' ? 'active' : ''}`}
-              onClick={() => setActiveTab('relatorios')}
-            >
-              <FaChartBar />
-              {!isSidebarCollapsed && <span>Relatórios</span>}
-            </button>
-            <button 
-              className="nav-link logout"
-              onClick={handleLogout}
-            >
-              <FaSignOutAlt />
-              {!isSidebarCollapsed && <span>Sair</span>}
-            </button>
-          </div>
-        </nav>
-
-        {/* Main Content */}
-        <main className="main-content">
-          {renderContent()}
-        </main>
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isSidebarCollapsed={isSidebarCollapsed}
+          setIsSidebarCollapsed={setIsSidebarCollapsed}
+          handleLogout={handleLogout}
+        />
+        <main className="main-content">{renderContent()}</main>
       </div>
-
-      {/* Add/Edit Vehicle Modal */}
       {(showAddModal || showEditModal) && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>{showEditModal ? 'Editar Veículo' : 'Adicionar Veículo'}</h2>
-              <button className="modal-close" onClick={() => {
-                setShowAddModal(false);
-                setShowEditModal(false);
-              }}>
-                <FaTimes />
-              </button>
-            </div>
-            {renderModalForm()}
-          </div>
-        </div>
+        <VehicleModal
+          showAddModal={showAddModal}
+          showEditModal={showEditModal}
+          setShowAddModal={setShowAddModal}
+          setShowEditModal={setShowEditModal}
+          selectedVeiculo={selectedVeiculo}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleImageUpload={handleImageUpload}
+          handleRemoveImage={handleRemoveImage}
+          handleSubmit={handleSubmit}
+        />
       )}
     </div>
   );
 };
 
 export default AdminDashboard;
-

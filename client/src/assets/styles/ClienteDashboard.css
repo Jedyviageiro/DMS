@@ -886,3 +886,271 @@
   transform: translateY(0);
   box-shadow: none;
 } 
+
+/* Promoções */
+.promo-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e31c79; /* Vermelho chamativo e bonito */
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.3s ease;
+}
+
+.promo-title::before {
+  content: '★'; /* Ícone de estrela para destacar */
+  font-size: 1rem;
+  color: #e31c79;
+}
+
+.promo-title:hover {
+  color: #c2185b; /* Tom mais escuro ao passar o mouse */
+}
+
+.preco-original {
+  font-size: 0.9rem;
+  color: #86868b;
+  text-decoration: line-through;
+  margin: 0.25rem 0;
+  font-weight: 400;
+}
+
+.desconto {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #34c759; /* Verde para destacar o desconto */
+  margin: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.desconto::before {
+  content: '↓'; /* Seta para baixo indicando redução */
+  font-size: 1rem;
+  color: #34c759;
+}
+
+.preco-final {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1d1d1f; /* Cor escura para destaque */
+  margin: 0.25rem 0;
+  transition: color 0.3s ease;
+}
+
+.preco-final:hover {
+  color: #0066cc; /* Azul ao passar o mouse para interação */
+}
+
+/* Ajustes para cards com promoção */
+.car-card.promo, .reserva-card.promo {
+  position: relative;
+  border: 2px solid #e31c79; /* Borda vermelha para indicar promoção */
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0% {
+    border-color: #e31c79;
+    box-shadow: 0 0 5px rgba(227, 28, 121, 0.3);
+  }
+  50% {
+    border-color: #c2185b;
+    box-shadow: 0 0 10px rgba(227, 28, 121, 0.5);
+  }
+  100% {
+    border-color: #e31c79;
+    box-shadow: 0 0 5px rgba(227, 28, 121, 0.3);
+  }
+}
+
+/* Estilo para a seção de depuração de promoções */
+.debug-promocoes {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.debug-promocoes h3 {
+  font-size: 1.5rem;
+  color: #1d1d1f;
+  margin-bottom: 1rem;
+}
+
+.debug-promocoes ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  color: #86868b;
+}
+
+.debug-promocoes li {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Ajustes para o modal de detalhes do carro */
+.car-modal .promo-title {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+}
+
+.car-modal .preco-original,
+.car-modal .desconto,
+.car-modal .preco-final {
+  font-size: 1.1rem;
+}
+
+/* Responsividade para promoções */
+@media (max-width: 768px) {
+  .promo-title {
+    font-size: 1rem;
+  }
+
+  .preco-final {
+    font-size: 1.15rem;
+  }
+
+  .car-card.promo, .reserva-card.promo {
+    animation: none; /* Desativa animação em telas menores */
+  }
+}
+
+.search-filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Changed from space-between to center */
+  gap: 2.5rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  flex: 4;
+  min-width: 350px; /* Increased from 300px */
+  max-width: 800px; /* Increased from 700px */
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 0.85rem 1.25rem;
+  background-color: #f5f5f7;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.search-bar:hover {
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.08);
+}
+
+.search-bar:focus-within {
+  border-color: #0066cc;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+
+.search-icon {
+  margin-right: 0.75rem;
+  color: #86868b;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.search-bar:focus-within .search-icon {
+  color: #0066cc;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  color: #1d1d1f;
+  background-color: transparent;
+  font-weight: 400;
+}
+
+.search-input::placeholder {
+  color: #86868b;
+  font-weight: 400;
+}
+
+.promotion-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 120px;
+  max-width: 180px;
+  font-size: 0.85rem;
+  color: #1d1d1f;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background-color: #f5f5f7;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.promotion-filter:hover {
+  background-color: #e5e5e5;
+  color: #0066cc;
+}
+
+.promotion-filter input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #0066cc;
+  border: 1px solid #e5e5e5;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.promotion-filter input[type="checkbox"]:checked {
+  border-color: #0066cc;
+}
+
+.promotion-filter label {
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .search-filter-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .search-bar {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .promotion-filter {
+    flex: none;
+    max-width: none;
+    width: fit-content;
+    padding: 0.5rem 0.75rem;
+    align-self: flex-start;
+  }
+
+  .promotion-filter label {
+    font-size: 0.8rem;
+  }
+}
