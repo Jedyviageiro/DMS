@@ -12,5 +12,7 @@ router.delete('/usuarios/:id', autenticarToken, isAdmin, adminController.excluir
 router.get('/reservas', autenticarToken, isAdmin, reservasController.listarTodasReservas);
 // Atualizar status da reserva (admin)
 router.put('/reservas/:reserva_id/status', autenticarToken, isAdmin, reservasController.atualizarStatusReserva);
+// Marcar reserva como paga (admin)
+router.patch('/reservas/:reserva_id/pago', autenticarToken, isAdmin, reservasController.marcarReservaComoPaga);
 
 module.exports = router;

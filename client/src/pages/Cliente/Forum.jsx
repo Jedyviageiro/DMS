@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { FaUserCircle, FaChevronDown, FaChevronUp, FaCheckCircle } from 'react-icons/fa';
+import { FaUserCircle, FaChevronDown, FaChevronUp, FaCheckCircle, FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 
 const getProfileImage = (email) => {
   if (!email) return null;
@@ -131,6 +131,24 @@ const Forum = () => {
     return null; // Only current user's image is available
   };
 
+  // Add like/dislike logic
+  const handleLikeDislikePost = async (postId, tipo) => {
+    try {
+      await api.post(`/api/forum/posts/${postId}/like`, { tipo });
+      fetchPosts();
+    } catch (err) {
+      setError('Erro ao processar like/dislike');
+    }
+  };
+  const handleLikeDislikeReply = async (respostaId, tipo, postId) => {
+    try {
+      await api.post(`/api/forum/respostas/${respostaId}/like`, { tipo });
+      handleToggleReplies(posts.find(p => p.id === postId));
+    } catch (err) {
+      setError('Erro ao processar like/dislike');
+    }
+  };
+
   return (
     <div className="forum-section">
       <h2>Fórum</h2>
@@ -187,6 +205,18 @@ const Forum = () => {
                 <div className="forum-post-message">{post.mensagem}</div>
                 {post.imagem_url && <img src={post.imagem_url} alt="imagem" className="forum-post-img" />}
                 <div className="forum-post-actions">
+                  <button
+                    className={`like-btn${post.userLiked === 'like' ? ' active' : ''}`}
+                    onClick={() => handleLikeDislikePost(post.id, 'like')}
+                  >
+                    <FaThumbsUp /> {post.userLiked === 'like' ? Math.max(1, post.likes || 0) : (post.likes || 0)}
+                  </button>
+                  <button
+                    className={`dislike-btn${post.userLiked === 'dislike' ? ' active' : ''}`}
+                    onClick={() => handleLikeDislikePost(post.id, 'dislike')}
+                  >
+                    <FaThumbsDown /> {post.userLiked === 'dislike' ? Math.max(1, post.dislikes || 0) : (post.dislikes || 0)}
+                  </button>
                   <button className="forum-ver-respostas" onClick={() => handleToggleReplies(post)}>
                     Ver respostas ({post.resposta_count || 0}) {selectedPostId === post.id ? <FaChevronUp /> : <FaChevronDown />}
                   </button>
@@ -210,6 +240,20 @@ const Forum = () => {
                             <div>
                               <div><strong>{r.usuario_nome} {isReplyAdmin && <FaCheckCircle style={{ color: '#4f8cff', marginLeft: 2, verticalAlign: 'middle' }} title="Admin verificado" />}</strong> <span className="forum-post-date">{new Date(r.data_resposta).toLocaleString('pt-BR')}</span></div>
                               <div>{r.resposta}</div>
+                            </div>
+                            <div className="forum-reply-actions">
+                              <button
+                                className={`like-btn${r.userLiked === 'like' ? ' active' : ''}`}
+                                onClick={() => handleLikeDislikeReply(r.id, 'like', post.id)}
+                              >
+                                <FaThumbsUp /> {r.userLiked === 'like' ? Math.max(1, r.likes || 0) : (r.likes || 0)}
+                              </button>
+                              <button
+                                className={`dislike-btn${r.userLiked === 'dislike' ? ' active' : ''}`}
+                                onClick={() => handleLikeDislikeReply(r.id, 'dislike', post.id)}
+                              >
+                                <FaThumbsDown /> {r.userLiked === 'dislike' ? Math.max(1, r.dislikes || 0) : (r.dislikes || 0)}
+                              </button>
                             </div>
                           </div>
                         );

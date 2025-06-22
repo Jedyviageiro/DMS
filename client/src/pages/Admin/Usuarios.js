@@ -186,7 +186,7 @@ const Usuario = () => {
                 </button>
                 <button
                   className="admin-btn-delete"
-                  onClick={() => setSelectedUsuario(usuario)}
+                  onClick={() => handleDelete(usuario.id)}
                   disabled={actionLoading}
                 >
                   <FaTrash /> Excluir

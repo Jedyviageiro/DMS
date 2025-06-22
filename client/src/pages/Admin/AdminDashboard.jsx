@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCar, FaSearch, FaInbox, FaCheckCircle } from 'react-icons/fa';
+import { FaCar, FaSearch, FaInbox, FaCheckCircle, FaBars } from 'react-icons/fa';
 import { adminApi } from '../../services/api';
 import { adminApi as adminApiAdmin } from '../../services/adminApi';
 import Sidebar from './Sidebar';
@@ -7,6 +7,7 @@ import VehicleModal from './VehicleModal';
 import Promocoes from './Promocoes';
 import Usuario from './Usuarios';
 import AdminForum from './AdminForum';
+import Relatorios from './Relatorios';
 import '../../assets/styles/AdminDashboard.css';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -36,6 +37,7 @@ const AdminDashboard = ({ onNavigate }) => {
   const [reservaSearch, setReservaSearch] = useState('');
   const [confirmModal, setConfirmModal] = useState({ open: false, message: '', onConfirm: null });
   const [errorModal, setErrorModal] = useState({ open: false, message: '' });
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (activeTab === 'veiculos') {
@@ -173,6 +175,8 @@ const AdminDashboard = ({ onNavigate }) => {
         await adminApi.atualizarVeiculo(selectedVeiculo.id, submitData);
         setShowEditModal(false);
         setSelectedVeiculo(null);
+        setSuccessMessage('Veículo atualizado com sucesso!');
+        setTimeout(() => setSuccessMessage(''), 2000);
       } else {
         const response = await adminApi.adicionarVeiculo(submitData);
         if (response.data.veiculo) {
@@ -317,7 +321,7 @@ const AdminDashboard = ({ onNavigate }) => {
                     <div className="admin-veiculo-info">
                       <h3>{veiculo.marca} {veiculo.modelo}</h3>
                       <p>Ano: {veiculo.ano}</p>
-                      <p>Preço: R$ {veiculo.preco.toLocaleString('pt-BR')}</p>
+                      <p>Preço: MZN {veiculo.preco.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}</p>
                       <p>Estoque: {veiculo.estoque}</p>
                       <div className="admin-veiculo-actions">
                         <button className="admin-btn-edit" onClick={() => handleEdit(veiculo)}>
@@ -409,11 +413,7 @@ const AdminDashboard = ({ onNavigate }) => {
           </div>
         );
       case 'relatorios':
-        return (
-          <div className="admin-content">
-            <h1>Relatórios</h1>
-          </div>
-        );
+        return <Relatorios />;
       case 'forum':
         return <AdminForum />;
       default:
@@ -428,8 +428,17 @@ const AdminDashboard = ({ onNavigate }) => {
   return (
     <div className="dashboard-container">
       <header className="top-navbar">
-        <div className="logo">
-          <h1>AutoElite - Admin</h1>
+        <div className="top-navbar-left">
+          <button
+            className="hamburger-top-navbar"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            aria-label="Abrir/Fechar menu"
+          >
+            <FaBars size={26} />
+          </button>
+          <div className="logo">
+            <h1>AutoElite - Admin</h1>
+          </div>
         </div>
         <div className="nav-actions">
           <div className="user-info">
@@ -475,6 +484,16 @@ const AdminDashboard = ({ onNavigate }) => {
           message={errorModal.message}
           onConfirm={() => setErrorModal({ open: false, message: '' })}
           onCancel={() => setErrorModal({ open: false, message: '' })}
+          confirmText="OK"
+          cancelText=""
+        />
+      )}
+      {successMessage && (
+        <ConfirmModal
+          open={true}
+          message={successMessage}
+          onConfirm={() => setSuccessMessage('')}
+          onCancel={() => setSuccessMessage('')}
           confirmText="OK"
           cancelText=""
         />

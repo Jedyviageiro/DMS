@@ -10,6 +10,8 @@ const PromocaoModal = ({
   formData,
   handleInputChange,
   handleSubmit,
+  marcas,
+  modelos,
 }) => {
   return (
     <div className="modal-overlay">
@@ -113,25 +115,33 @@ const PromocaoModal = ({
           {formData.aplicavel_em === 'marca' && (
             <div className="form-group">
               <label>Marca:</label>
-              <input
-                type="text"
+              <select
                 name="marca"
                 value={formData.marca}
                 onChange={handleInputChange}
                 required
-              />
+              >
+                <option value="">Selecione uma marca</option>
+                {marcas && marcas.map(marca => (
+                  <option key={marca} value={marca}>{marca}</option>
+                ))}
+              </select>
             </div>
           )}
           {formData.aplicavel_em === 'modelo' && (
             <div className="form-group">
               <label>Modelo:</label>
-              <input
-                type="text"
+              <select
                 name="modelo"
                 value={formData.modelo}
                 onChange={handleInputChange}
                 required
-              />
+              >
+                <option value="">Selecione um modelo</option>
+                {modelos && modelos.map(modelo => (
+                  <option key={modelo} value={modelo}>{modelo}</option>
+                ))}
+              </select>
             </div>
           )}
           <button type="submit" className="admin-btn-primary">

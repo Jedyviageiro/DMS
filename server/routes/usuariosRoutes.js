@@ -6,6 +6,7 @@ const {
   atualizarUsuario,
   excluirUsuario,
   atualizarDadosPessoais,
+  banirUsuario,
 } = require('../controllers/usuariosController');
 
 const { autenticarToken, isAdmin, isCliente } = require('../middlewares/authMiddleware');
@@ -21,5 +22,8 @@ router.put('/usuarios/:id', autenticarToken, isAdmin, atualizarUsuario);
 
 // Excluir usuário por ID (admin)
 router.delete('/usuarios/:id', autenticarToken, isAdmin, excluirUsuario);
+
+// Banir usuário por ID (admin)
+router.post('/usuarios/:id/ban', autenticarToken, isAdmin, banirUsuario);
 
 module.exports = router;

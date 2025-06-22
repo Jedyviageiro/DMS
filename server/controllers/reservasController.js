@@ -224,10 +224,37 @@ const atualizarStatusReserva = async (req, res) => {
   }
 };
 
+// ADMIN: Marcar reserva como paga
+const marcarReservaComoPaga = async (req, res) => {
+  const { reserva_id } = req.params;
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [reservas] = await connection.query('SELECT * FROM reservas WHERE id = ?', [reserva_id]);
+    if (reservas.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ mensagem: 'Reserva não encontrada' });
+    }
+
+    await connection.query('UPDATE reservas SET pago = 1 WHERE id = ?', [reserva_id]);
+    await connection.commit();
+    res.status(200).json({ mensagem: 'Reserva marcada como paga com sucesso' });
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error('Erro ao marcar reserva como paga:', error);
+    res.status(500).json({ mensagem: 'Erro no servidor' });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 module.exports = {
   criarPreReserva,
   listarReservasCliente,
   cancelarReserva,
   listarTodasReservas, // admin
-  atualizarStatusReserva // admin
+  atualizarStatusReserva, // admin
+  marcarReservaComoPaga // admin
 };

@@ -97,3 +97,14 @@ exports.atualizarDadosPessoais = async (req, res) => {
     res.status(500).json({ mensagem: 'Erro no servidor' });
   }
 };
+
+exports.banirUsuario = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('UPDATE usuarios SET banned = 1 WHERE id = ?', [id]);
+    res.status(200).json({ mensagem: 'Usuário banido com sucesso' });
+  } catch (err) {
+    console.error('Erro ao banir usuário:', err);
+    res.status(500).json({ mensagem: 'Erro ao banir usuário' });
+  }
+};

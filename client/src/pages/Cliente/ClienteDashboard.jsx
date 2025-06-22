@@ -344,20 +344,20 @@ const ClienteDashboard = ({ onNavigate }) => {
                         <>
                           <p className="promo-title">{promocao.titulo || 'Promoção Especial'}</p>
                           <p className="preco-original">
-                            Preço Original: R$ {car.preco.toLocaleString('pt-BR')}
+                            Preço Original: {car.preco.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}
                           </p>
                           <p className="desconto">
                             Desconto:{' '}
                             {promocao.desconto_tipo === 'percentual'
                               ? `${promocao.desconto_valor}%`
-                              : `R$ ${promocao.desconto_valor.toLocaleString('pt-BR')}`}
+                              : `MZN ${promocao.desconto_valor.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}`}
                           </p>
                           <p className="preco-final">
-                            Preço Final: R$ {precoFinal.toLocaleString('pt-BR')}
+                            Preço Final: {precoFinal.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}
                           </p>
                         </>
                       ) : (
-                        <p>Preço: R$ {car.preco.toLocaleString('pt-BR')}</p>
+                        <p>Preço: {car.preco.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}</p>
                       )}
                     </div>
                   </div>
@@ -407,20 +407,20 @@ const ClienteDashboard = ({ onNavigate }) => {
                       <>
                         <p className="promo-title">{promocao.titulo || 'Promoção Especial'}</p>
                         <p className="preco-original">
-                          Preço Original: R$ {reserva.preco.toLocaleString('pt-BR')}
+                          Preço Original: {reserva.preco.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}
                         </p>
                         <p className="desconto">
                           Desconto:{' '}
                           {promocao.desconto_tipo === 'percentual'
                             ? `${promocao.desconto_valor}%`
-                            : `R$ ${promocao.desconto_valor.toLocaleString('pt-BR')}`}
+                            : `MZN ${promocao.desconto_valor.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}`}
                         </p>
                         <p className="preco-final">
-                          Preço Final: R$ {precoFinal.toLocaleString('pt-BR')}
+                          Preço Final: {precoFinal.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}
                         </p>
                       </>
                     ) : (
-                      <p>Preço: R$ {reserva.preco.toLocaleString('pt-BR')}</p>
+                      <p>Preço: {reserva.preco.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}</p>
                     )}
                     <p>Data da Reserva: {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}</p>
                     {reserva.status === 'pendente' && (
@@ -569,8 +569,17 @@ const ClienteDashboard = ({ onNavigate }) => {
   return (
     <div className="dashboard-container">
       <header className="top-navbar">
-        <div className="logo">
-          <h1>AutoElite</h1>
+        <div className="top-navbar-left">
+          <button
+            className="hamburger-top-navbar"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            aria-label="Abrir/Fechar menu"
+          >
+            <FaBars size={26} />
+          </button>
+          <div className="logo">
+            <h1>AutoElite</h1>
+          </div>
         </div>
         <div className="nav-actions">
           <div className="notifications-container">
@@ -586,20 +595,23 @@ const ClienteDashboard = ({ onNavigate }) => {
               )}
             </button>
             {showNotifications && (
-              <div className="notifications-dropdown teardrop-effect">
-                {notificacoes.length === 0 ? (
-                  <p>Nenhuma notificação</p>
-                ) : (
-                  <div className={`notification-item ${!notificacoes[0].lida ? 'unread' : ''}`}>
-                    <p>{notificacoes[0].mensagem}</p>
-                    <button
-                      className="btn btn-text"
-                      onClick={() => setShowNotifications(false)}
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                )}
+              <div className="notifications-dropdown">
+                <div className="notifications-header">
+                  <span>Notificações</span>
+                  <button className="btn btn-text" onClick={() => setShowNotifications(false)}>Fechar</button>
+                </div>
+                <div className="notifications-list">
+                  {notificacoes.length === 0 ? (
+                    <p className="no-notifications">Nenhuma notificação</p>
+                  ) : (
+                    notificacoes.map((n, idx) => (
+                      <div key={n.id || idx} className={`notification-item${!n.lida ? ' unread' : ''}`}>
+                        <p>{n.mensagem}</p>
+                        <span className="notification-date">{n.data_criacao ? new Date(n.data_criacao).toLocaleString('pt-BR') : ''}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -620,41 +632,38 @@ const ClienteDashboard = ({ onNavigate }) => {
 
       <div className="dashboard-wrapper">
         <nav className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-          <button
-            className="collapse-button"
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          >
-            <FaBars />
-          </button>
           <div className="nav-links">
-            <button
-              className={`nav-link ${activeTab === 'explorar' ? 'active' : ''}`}
-              onClick={() => setActiveTab('explorar')}
-            >
-              <FaCar />
-              {!isSidebarCollapsed && <span>Explorar</span>}
-            </button>
-            <button
-              className={`nav-link ${activeTab === 'reservas' ? 'active' : ''}`}
-              onClick={() => setActiveTab('reservas')}
-            >
-              <FaCalendarAlt />
-              {!isSidebarCollapsed && <span>Minhas Reservas</span>}
-            </button>
-            <button
-              className={`nav-link ${activeTab === 'perfil' ? 'active' : ''}`}
-              onClick={() => setActiveTab('perfil')}
-            >
-              <FaUserEdit />
-              {!isSidebarCollapsed && <span>Meu Perfil</span>}
-            </button>
-            <button
-              className={`nav-link ${activeTab === 'forum' ? 'active' : ''}`}
-              onClick={() => setActiveTab('forum')}
-            >
-              <FaComments />
-              {!isSidebarCollapsed && <span>Fórum</span>}
-            </button>
+            <div className="nav-links-main">
+              <button
+                className={`nav-link ${activeTab === 'explorar' ? 'active' : ''}`}
+                onClick={() => setActiveTab('explorar')}
+              >
+                <FaCar />
+                {!isSidebarCollapsed && <span>Explorar</span>}
+              </button>
+              <button
+                className={`nav-link ${activeTab === 'reservas' ? 'active' : ''}`}
+                onClick={() => setActiveTab('reservas')}
+              >
+                <FaCalendarAlt />
+                {!isSidebarCollapsed && <span>Minhas Reservas</span>}
+              </button>
+              <button
+                className={`nav-link ${activeTab === 'perfil' ? 'active' : ''}`}
+                onClick={() => setActiveTab('perfil')}
+              >
+                <FaUserEdit />
+                {!isSidebarCollapsed && <span>Meu Perfil</span>}
+              </button>
+              <button
+                className={`nav-link ${activeTab === 'forum' ? 'active' : ''}`}
+                onClick={() => setActiveTab('forum')}
+              >
+                <FaComments />
+                {!isSidebarCollapsed && <span>Fórum</span>}
+              </button>
+            </div>
+            <div className="nav-links-separator"></div>
             <button className="nav-link logout" onClick={handleLogout}>
               <FaSignOutAlt />
               {!isSidebarCollapsed && <span>Sair</span>}
@@ -711,21 +720,21 @@ const ClienteDashboard = ({ onNavigate }) => {
                     <>
                       <p className="promo-title">{promocao.titulo || 'Promoção Especial'}</p>
                       <p className="preco-original">
-                        <strong>Preço Original:</strong> R$ {selectedCar.preco.toLocaleString('pt-BR')}
+                        <strong>Preço Original:</strong> {selectedCar.preco.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}
                       </p>
                       <p className="desconto">
                         <strong>Desconto:</strong>{' '}
                         {promocao.desconto_tipo === 'percentual'
                           ? `${promocao.desconto_valor}%`
-                          : `R$ ${promocao.desconto_valor.toLocaleString('pt-BR')}`}
+                          : `MZN ${promocao.desconto_valor.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}`}
                       </p>
                       <p className="preco-final">
-                        <strong>Preço Final:</strong> R$ {precoFinal.toLocaleString('pt-BR')}
+                        <strong>Preço Final:</strong> {precoFinal.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}
                       </p>
                     </>
                   ) : (
                     <p>
-                      <strong>Preço:</strong> R$ {selectedCar.preco.toLocaleString('pt-BR')}
+                      <strong>Preço:</strong> {selectedCar.preco.toLocaleString('en-US', { style: 'currency', currency: 'MZN' })}
                     </p>
                   );
                 })()}

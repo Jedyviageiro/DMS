@@ -240,7 +240,9 @@ const AdminForum = () => {
                   </div>
                   <div className="forum-admin-actions">
                     <button title="Deletar post" className="modern-icon-btn" onClick={() => handleDeletePost(post.id)}><MdDeleteOutline size={22} /></button>
-                    <button title="Banir usuário" className="modern-icon-btn" onClick={() => handleBanUser(post.usuario_id)}><MdBlock size={22} /></button>
+                    {post.usuario_role !== 'admin' && post.usuario_id !== user.id && (
+                      <button title="Banir usuário" className="modern-icon-btn" onClick={() => handleBanUser(post.usuario_id)}><MdBlock size={22} /></button>
+                    )}
                   </div>
                 </div>
                 <div className="forum-post-message">{post.mensagem}</div>
@@ -272,7 +274,9 @@ const AdminForum = () => {
                             </div>
                             <div className="forum-admin-actions">
                               <button title="Deletar resposta" className="modern-icon-btn" onClick={() => handleDeleteReply(r.id, post.id)}><MdDeleteOutline size={20} /></button>
-                              <button title="Banir usuário" className="modern-icon-btn" onClick={() => handleBanUser(r.usuario_id)}><MdBlock size={20} /></button>
+                              {r.usuario_role !== 'admin' && r.usuario_id !== user.id && (
+                                <button title="Banir usuário" className="modern-icon-btn" onClick={() => handleBanUser(r.usuario_id)}><MdBlock size={20} /></button>
+                              )}
                             </div>
                           </div>
                         );

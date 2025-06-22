@@ -27,10 +27,22 @@ const Promocoes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmModal, setConfirmModal] = useState({ open: false, message: '', onConfirm: null });
   const [errorModal, setErrorModal] = useState({ open: false, message: '' });
+  const [marcas, setMarcas] = useState([]);
+  const [modelos, setModelos] = useState([]);
 
   useEffect(() => {
     carregarPromocoes();
   }, []);
+
+  useEffect(() => {
+    if (showAddModal || showEditModal) {
+      adminApi.listarVeiculos().then(res => {
+        const veiculos = res.data.veiculos;
+        setMarcas([...new Set(veiculos.map(v => v.marca))]);
+        setModelos([...new Set(veiculos.map(v => v.modelo))]);
+      });
+    }
+  }, [showAddModal, showEditModal]);
 
   const carregarPromocoes = async () => {
     try {
@@ -186,18 +198,6 @@ const Promocoes = () => {
           </div>
         ))}
       </div>
-      {(showAddModal || showEditModal) && (
-        <PromocaoModal
-          showAddModal={showAddModal}
-          showEditModal={showEditModal}
-          setShowAddModal={setShowAddModal}
-          setShowEditModal={setShowEditModal}
-          selectedPromocao={selectedPromocao}
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-        />
-      )}
       {confirmModal.open && (
         <ConfirmModal
           open={confirmModal.open}
@@ -214,6 +214,20 @@ const Promocoes = () => {
           onCancel={() => setErrorModal({ open: false, message: '' })}
           confirmText="OK"
           cancelText=""
+        />
+      )}
+      { (showAddModal || showEditModal) && (
+        <PromocaoModal
+          showAddModal={showAddModal}
+          showEditModal={showEditModal}
+          setShowAddModal={setShowAddModal}
+          setShowEditModal={setShowEditModal}
+          selectedPromocao={selectedPromocao}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          marcas={marcas}
+          modelos={modelos}
         />
       )}
     </div>
