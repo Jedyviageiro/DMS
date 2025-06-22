@@ -1,4 +1,4 @@
-# 🚗 Sistema de Gerenciamento de Concessionárias (DMS)
+# Sistema de Gerenciamento de Concessionárias (DMS)
 
 Um sistema completo para gestão de concessionárias de veículos, desenvolvido com:
 
