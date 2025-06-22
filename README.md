@@ -16,7 +16,7 @@ Um sistema completo para gestão de concessionárias de veículos, desenvolvido 
 - **Catálogo de Veículos** com filtros avançados
 - **Sistema de Pré-reserva** com confirmação por e-mail
 - **Acompanhamento** de pedidos
-- **Avaliação** de veículos comprados
+- **Forum** 
 
 ### 🏢 Módulo da Concessionária
 - **Gestão completa** de estoque de veículos
@@ -25,29 +25,7 @@ Um sistema completo para gestão de concessionárias de veículos, desenvolvido 
 - **Relatórios** de vendas e desempenho
 - **Ferramentas** de análise de mercado
 
-## 🔧 Requisitos Técnicos
 
-### Backend (Node.js/Express)
-```javascript
-// Exemplo de rota para listagem de veículos
-app.get('/api/veiculos', (req, res) => {
-  // Lógica para retornar veículos do banco de dados
-});
-
-
-
-tabela de promocao
-CREATE TABLE promocoes (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  titulo VARCHAR(100) NOT NULL,
-  descricao TEXT,
-  desconto_tipo ENUM('percentual', 'valor_fixo') NOT NULL,
-  desconto_valor DECIMAL(10,2) NOT NULL,
-  data_inicio DATE NOT NULL,
-  data_fim DATE NOT NULL,
-  ativo TINYINT(1) NOT NULL DEFAULT 1,
-  aplicavel_em ENUM('todos', 'marca', 'modelo') NOT NULL DEFAULT 'todos',
-  marca VARCHAR(50) DEFAULT NULL,
   modelo VARCHAR(50) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
