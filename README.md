@@ -26,8 +26,3 @@ Um sistema completo para gestão de concessionárias de veículos, desenvolvido 
 - **Ferramentas** de análise de mercado
 
 
-  modelo VARCHAR(50) DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
