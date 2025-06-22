@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { enviarPromocao } = require('../services/emailService');
 
 // Listar todas promoções ativas (ou filtradas)
 exports.listarPromocoes = async (req, res) => {
@@ -48,6 +49,23 @@ exports.criarPromocao = async (req, res) => {
         modelo || null
       ]
     );
+
+    // Após criar a promoção, enviar email para todos os clientes
+    try {
+      const [usuarios] = await pool.query('SELECT nome, email FROM usuarios WHERE email IS NOT NULL');
+      const promocao = { titulo, desconto_valor, data_fim };
+      for (const usuario of usuarios) {
+        if (usuario.email) {
+          try {
+            await enviarPromocao(usuario.email, usuario.nome, promocao);
+          } catch (emailError) {
+            console.error(`Erro ao enviar email de promoção para ${usuario.email}:`, emailError);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao buscar usuários para envio de promoção:', err);
+    }
 
     res.status(201).json({ mensagem: 'Promoção criada com sucesso' });
   } catch (error) {

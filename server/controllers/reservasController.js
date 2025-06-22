@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { enviarConfirmacaoReserva } = require('../services/emailService');
+const { enviarConfirmacaoReserva, enviarReservaAceite } = require('../services/emailService');
 
 const criarPreReserva = async (req, res) => {
   const { veiculo_id } = req.body;
@@ -213,6 +213,20 @@ const atualizarStatusReserva = async (req, res) => {
       'INSERT INTO notificacoes (usuario_id, mensagem, lida) VALUES (?, ?, ?)',
       [reserva.usuario_id, `Reserva #${reserva_id} foi ${status === 'confirmada' ? 'confirmada' : 'recusada'}`, false]
     );
+    // Enviar email de aceitação se for confirmada
+    if (status === 'confirmada') {
+      // Buscar dados do usuário e veículo
+      const [[usuario]] = await connection.query('SELECT nome, email FROM usuarios WHERE id = ?', [reserva.usuario_id]);
+      const [[veiculo]] = await connection.query('SELECT marca, modelo, ano, preco FROM veiculos WHERE id = ?', [reserva.veiculo_id]);
+      if (usuario && veiculo) {
+        const agenciaEndereco = 'Av. Eduardo Mondlane, Beira, Moçambique';
+        try {
+          await enviarReservaAceite(usuario.email, usuario.nome, veiculo, agenciaEndereco);
+        } catch (emailError) {
+          console.error('Erro ao enviar email de aceitação:', emailError);
+        }
+      }
+    }
     await connection.commit();
     res.status(200).json({ mensagem: `Reserva ${status === 'confirmada' ? 'confirmada' : 'recusada'} com sucesso` });
   } catch (error) {
